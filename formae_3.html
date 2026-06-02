@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fōrmae — Latin Form Trainer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2386291f'/%3E%3Ctext x='50' y='72' font-size='62' text-anchor='middle' fill='%23f7f1e3' font-family='Georgia,serif' font-weight='bold'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#f7f1e3; --paper:#fffaf0; --ink:#241f1b; --ink-soft:#5b5147;
+    --oxblood:#86291f; --gold:#a9803f; --gold-soft:#cdaa6b;
+    --green:#3c7048; --green-bg:#e7f0e4; --red:#a3331f; --red-bg:#f6e4df;
+    --line:#e0d4ba; --shadow:0 1px 0 #fff6, 0 18px 40px -24px #4a2a1a55;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #fff7e9 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #f0e7cf 0%, transparent 55%), var(--ivory);
+    color:var(--ink); font-family:"Spectral",Georgia,serif; line-height:1.5; min-height:100vh; padding:26px 16px 60px;
+  }
+  .wrap{max-width:840px; margin:0 auto}
+  header{text-align:center; margin-bottom:18px}
+  .wordmark{font-family:"Fraunces",serif; font-weight:600; font-size:clamp(30px,6vw,50px); letter-spacing:.06em; color:var(--oxblood); margin:0; line-height:1; font-variation-settings:"opsz" 144}
+  .subtitle{font-style:italic; color:var(--ink-soft); margin:6px 0 0; font-size:14.5px}
+  .rule{height:2px; background:linear-gradient(90deg,transparent,var(--gold-soft),transparent); margin:14px 0}
+  .panel{background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow)}
+  .tabs{display:flex; gap:6px; justify-content:center; margin-bottom:16px; flex-wrap:wrap}
+  .tab{font-family:"Fraunces",serif; font-weight:600; font-size:15px; padding:10px 20px; border-radius:11px 11px 0 0; border:1px solid var(--line); border-bottom:none; background:#f0e6d0; color:var(--ink-soft); cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--paper); color:var(--oxblood); box-shadow:0 -3px 0 var(--oxblood) inset}
+  .options{padding:14px 18px; margin-bottom:18px; display:flex; flex-wrap:wrap; gap:16px 26px}
+  .options.hidden{display:none}
+  .set-group{display:flex; flex-direction:column; gap:7px}
+  .set-label{font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+  .set-row{display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center}
+  label.chk{display:inline-flex; align-items:center; gap:6px; font-size:14px; cursor:pointer; color:var(--ink-soft)}
+  label.chk input{accent-color:var(--oxblood); width:15px; height:15px; cursor:pointer}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden}
+  .seg button{font-family:inherit; font-size:13px; padding:5px 11px; background:transparent; border:0; cursor:pointer; color:var(--ink-soft); border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button[aria-pressed="true"]{background:var(--oxblood); color:#fff}
+  .card{padding:24px 26px 20px; margin-bottom:18px}
+  .prompt-tag{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center}
+  .prompt-tag .num{font-family:var(--mono); color:var(--ink-soft)}
+  .english{font-family:"Fraunces",serif; font-weight:500; font-size:clamp(20px,4vw,28px); line-height:1.3; color:var(--ink); margin:0 0 14px}
+  .vocab{background:var(--ivory); border:1px dashed var(--gold-soft); border-radius:10px; padding:11px 14px; font-size:15.5px; color:var(--ink-soft); margin-bottom:16px}
+  .vocab .vlabel{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:4px}
+  .vocab .entry{padding:1px 0}
+  .answer-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  #answer{flex:1 1 300px; font-family:"Spectral",serif; font-size:21px; padding:12px 14px; border:1.5px solid var(--gold-soft); border-radius:10px; background:#fff; color:var(--ink); outline:none; transition:border-color .15s, box-shadow .15s}
+  #answer:focus{border-color:var(--oxblood); box-shadow:0 0 0 3px #86291f22}
+  #answer.correct{border-color:var(--green); background:var(--green-bg)} #answer.wrong{border-color:var(--red); background:var(--red-bg)}
+  .macra{display:flex; gap:5px; align-items:center; flex-wrap:wrap; margin:12px 0 4px}
+  .macra button{font-family:"Spectral",serif; font-size:18px; width:38px; height:40px; border:1px solid var(--line); background:var(--ivory); border-radius:8px; cursor:pointer; color:var(--ink)}
+  .macra button:hover{background:var(--gold-soft); color:#fff}
+  .macra .hint{font-size:12.5px; color:var(--ink-soft); margin-left:6px; font-style:italic}
+  .actions{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:center}
+  .btn{font-family:"Fraunces",serif; font-weight:600; font-size:15px; padding:11px 22px; border-radius:10px; border:1px solid transparent; cursor:pointer}
+  .btn-primary{background:var(--oxblood); color:#fff} .btn-primary:hover{filter:brightness(1.08)}
+  .btn-ghost{background:transparent; color:var(--oxblood); border-color:var(--gold-soft)} .btn-ghost:hover{background:#86291f0d}
+  .macstrict{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft); margin-left:auto; cursor:pointer}
+  .macstrict input{accent-color:var(--oxblood)}
+  .feedback{margin-top:16px; font-size:16px}
+  .feedback .verdict{font-family:"Fraunces",serif; font-weight:600; font-size:17px}
+  .feedback.ok .verdict{color:var(--green)} .feedback.no .verdict{color:var(--red)}
+  .feedback .ans{font-size:20px; margin-top:4px} .feedback .ans b{color:var(--oxblood)}
+  .feedback .note{font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:6px}
+  .stats{display:flex; gap:22px; justify-content:center; margin:6px 0 16px; font-size:14px; color:var(--ink-soft)}
+  .stats b{font-family:var(--mono); color:var(--oxblood); font-size:16px}
+  .logwrap h2{font-family:"Fraunces",serif; font-size:14px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:0; padding:14px 18px 8px; border-bottom:1px solid var(--line)}
+  .log{font-family:var(--mono); font-size:13px; line-height:1.7; padding:12px 18px 16px; max-height:330px; overflow:auto; color:var(--ink-soft)}
+  .log .item{padding:7px 0; border-bottom:1px dotted var(--line)} .log .item:last-child{border-bottom:0}
+  .log .q{color:var(--ink); font-weight:500} .log .you{color:var(--red)} .log .you.ok{color:var(--green)}
+  .log .ans2 b{color:var(--oxblood)} .log .tag{color:var(--gold); font-size:12px} .log .empty{color:var(--ink-soft); font-style:italic; font-family:"Spectral",serif}
+  footer{text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:24px; font-style:italic}
+  .srcbar{padding:12px 18px; margin-bottom:14px; display:flex; flex-wrap:wrap; gap:14px 22px; align-items:flex-start}
+  .modal-bg{position:fixed; inset:0; background:#2a1a12bb; display:none; align-items:center; justify-content:center; padding:18px; z-index:50}
+  .modal-bg.show{display:flex}
+  .modal{max-width:560px; width:100%; padding:22px 24px; max-height:90vh; overflow:auto}
+  .modal h2{font-family:"Fraunces",serif; color:var(--oxblood); margin:0 0 8px; font-size:22px}
+  .modal-help{font-size:14px; color:var(--ink-soft); margin:0 0 10px}
+  .modal-eg{background:var(--ivory); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); white-space:pre-wrap; margin:0 0 12px}
+  .modal-label{display:block; font-size:13px; color:var(--ink-soft); margin-bottom:8px}
+  .modal-label input{font-family:inherit; font-size:14px; padding:6px 10px; border:1px solid var(--line); border-radius:7px; margin-left:8px; width:120px}
+  #importText{width:100%; min-height:140px; font-family:var(--mono); font-size:13px; padding:11px; border:1px solid var(--gold-soft); border-radius:9px; resize:vertical; color:var(--ink)}
+  .import-report{font-size:13px; margin:10px 0 0; max-height:120px; overflow:auto}
+  .import-report .ok{color:var(--green)} .import-report .err{color:var(--red)}
+  .modal-actions{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap}
+  #chapterRow label.chk{background:var(--ivory); border:1px solid var(--line); padding:3px 9px; border-radius:20px}
+  .assign-row{display:flex; align-items:center; gap:16px 22px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid var(--line)}
+  .assign-label{font-size:13.5px; color:var(--ink-soft); display:inline-flex; align-items:center; gap:8px}
+  #targetInput{font-family:var(--mono); font-size:15px; width:70px; padding:5px 8px; border:1px solid var(--gold-soft); border-radius:7px; text-align:center}
+  .assign-hint{font-size:12px; font-style:italic; color:var(--gold)}
+  .assign-progress{font-family:"Fraunces",serif; font-weight:600; font-size:14px; color:var(--oxblood)}
+  .assign-progress.done{color:var(--green)}
+  .assign-bar{flex:1 1 100%; height:8px; background:var(--ivory); border:1px solid var(--line); border-radius:20px; overflow:hidden; margin-top:2px}
+  .assign-bar > div{height:100%; background:linear-gradient(90deg,var(--gold-soft),var(--oxblood)); width:0%; transition:width .3s}
+  .assign-bar.done > div{background:var(--green)}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="wordmark">Fōrmae</h1>
+    <p class="subtitle">Latin Form Trainer · decline · conjugate · compose</p>
+    <div class="rule"></div>
+  </header>
+  <!-- WORD SOURCE BAR -->
+  <div class="panel srcbar" id="srcbar">
+    <div class="set-group"><span class="set-label">Word source</span>
+      <div class="seg" data-seg="src">
+        <button data-v="bank" aria-pressed="true">Word Bank</button>
+        <button data-v="book1" aria-pressed="false">Suburani Book 1</button>
+        <button data-v="book12" aria-pressed="false">Suburani Book 1 + 2</button>
+        <button data-v="custom" aria-pressed="false">Custom (imported)</button>
+      </div>
+    </div>
+    <div class="set-group" id="chapterGroup" style="display:none"><span class="set-label">Chapters</span>
+      <div class="set-row" id="chapterRow"></div>
+    </div>
+    <button class="btn btn-ghost" id="importBtn" style="margin-left:auto; align-self:center">+ Import vocab</button>
+  </div>
+
+  <!-- IMPORT MODAL -->
+  <div class="modal-bg" id="importModal">
+    <div class="modal panel">
+      <h2>Import your vocabulary</h2>
+      <p class="modal-help">Paste words from your own Suburani notes — one per line. The app reads the principal parts and adds them to the bank. Recognised formats:</p>
+      <pre class="modal-eg">amō, amāre, amāvī, amātus = to love
+puella, puellae, f. = girl
+bonus, -a, -um = good
+fortis, -e = brave</pre>
+      <label class="modal-label">Chapter / label (optional) <input id="importChapter" type="text" placeholder="e.g. 5"></label>
+      <textarea id="importText" placeholder="Paste your vocabulary list here…"></textarea>
+      <div id="importReport" class="import-report"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="importDo">Add words</button>
+        <button class="btn btn-ghost" id="importClose">Close</button>
+        <button class="btn btn-ghost" id="importClear" style="margin-left:auto">Clear all imported</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab" data-tab="verb" aria-selected="true">Verbs</button>
+    <button class="tab" data-tab="noun" aria-selected="false">Nouns</button>
+    <button class="tab" data-tab="adj" aria-selected="false">Adjectives</button>
+    <button class="tab" data-tab="compare" aria-selected="false">Comparison</button>
+    <button class="tab" data-tab="pron" aria-selected="false">Pronouns</button>
+    <button class="tab" data-tab="nonfin" aria-selected="false">Infinitives &amp; participles</button>
+    <button class="tab" data-tab="ablabs" aria-selected="false">Ablative absolute</button>
+  </div>
+
+  <!-- VERB OPTIONS -->
+  <div class="panel options" id="opt-verb">
+    <div class="set-group"><span class="set-label">Conjugations</span><div class="set-row" data-grp="vConj">
+      <label class="chk"><input type="checkbox" value="1" checked> 1st</label>
+      <label class="chk"><input type="checkbox" value="2" checked> 2nd</label>
+      <label class="chk"><input type="checkbox" value="3" checked> 3rd</label>
+      <label class="chk"><input type="checkbox" value="3io" checked> 3rd-iō</label>
+      <label class="chk"><input type="checkbox" value="4" checked> 4th</label>
+      <label class="chk"><input type="checkbox" value="irr"> Irregular</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Mood</span><div class="set-row" data-grp="vMood">
+      <label class="chk"><input type="checkbox" value="indicative" checked> Indicative</label>
+      <label class="chk"><input type="checkbox" value="subjunctive"> Subjunctive</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Voice</span><div class="set-row" data-grp="vVoice">
+      <label class="chk"><input type="checkbox" value="active" checked> Active</label>
+      <label class="chk"><input type="checkbox" value="passive"> Passive</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Tenses</span><div class="set-row" data-grp="vTense">
+      <label class="chk"><input type="checkbox" value="present" checked> Present</label>
+      <label class="chk"><input type="checkbox" value="imperfect" checked> Imperfect</label>
+      <label class="chk"><input type="checkbox" value="future" checked> Future</label>
+      <label class="chk"><input type="checkbox" value="perfect" checked> Perfect</label>
+      <label class="chk"><input type="checkbox" value="pluperfect" checked> Pluperfect</label>
+      <label class="chk"><input type="checkbox" value="futureperfect" checked> Fut. perfect</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Number</span>
+      <div class="seg" data-seg="vNum"><button data-v="both" aria-pressed="true">Mixed</button><button data-v="sg" aria-pressed="false">Sing.</button><button data-v="pl" aria-pressed="false">Plur.</button></div>
+    </div>
+  </div>
+
+  <!-- NOUN OPTIONS -->
+  <div class="panel options hidden" id="opt-noun">
+    <div class="set-group"><span class="set-label">Declensions</span><div class="set-row" data-grp="nDecl">
+      <label class="chk"><input type="checkbox" value="1" checked> 1st</label>
+      <label class="chk"><input type="checkbox" value="2" checked> 2nd</label>
+      <label class="chk"><input type="checkbox" value="3" checked> 3rd</label>
+      <label class="chk"><input type="checkbox" value="4" checked> 4th</label>
+      <label class="chk"><input type="checkbox" value="5" checked> 5th</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Cases</span><div class="set-row" data-grp="nCase">
+      <label class="chk"><input type="checkbox" value="Nom" checked> Nom</label>
+      <label class="chk"><input type="checkbox" value="Gen" checked> Gen</label>
+      <label class="chk"><input type="checkbox" value="Dat" checked> Dat</label>
+      <label class="chk"><input type="checkbox" value="Acc" checked> Acc</label>
+      <label class="chk"><input type="checkbox" value="Abl" checked> Abl</label>
+      <label class="chk"><input type="checkbox" value="Voc"> Voc</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Number</span>
+      <div class="seg" data-seg="nNum"><button data-v="both" aria-pressed="true">Mixed</button><button data-v="sg" aria-pressed="false">Sing.</button><button data-v="pl" aria-pressed="false">Plur.</button></div>
+    </div>
+  </div>
+
+  <!-- ADJECTIVE OPTIONS -->
+  <div class="panel options hidden" id="opt-adj">
+    <div class="set-group"><span class="set-label">Types</span><div class="set-row" data-grp="jType">
+      <label class="chk"><input type="checkbox" value="212" checked> 1st/2nd (bonus)</label>
+      <label class="chk"><input type="checkbox" value="3" checked> 3rd decl. (fortis)</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Cases</span><div class="set-row" data-grp="jCase">
+      <label class="chk"><input type="checkbox" value="Nom" checked> Nom</label>
+      <label class="chk"><input type="checkbox" value="Gen" checked> Gen</label>
+      <label class="chk"><input type="checkbox" value="Dat" checked> Dat</label>
+      <label class="chk"><input type="checkbox" value="Acc" checked> Acc</label>
+      <label class="chk"><input type="checkbox" value="Abl" checked> Abl</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Gender</span><div class="set-row" data-grp="jGen">
+      <label class="chk"><input type="checkbox" value="m" checked> Masc</label>
+      <label class="chk"><input type="checkbox" value="f" checked> Fem</label>
+      <label class="chk"><input type="checkbox" value="n" checked> Neut</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Number</span>
+      <div class="seg" data-seg="jNum"><button data-v="both" aria-pressed="true">Mixed</button><button data-v="sg" aria-pressed="false">Sing.</button><button data-v="pl" aria-pressed="false">Plur.</button></div>
+    </div>
+  </div>
+
+  <!-- COMPARISON OPTIONS -->
+  <div class="panel options hidden" id="opt-compare">
+    <div class="set-group"><span class="set-label">Form</span><div class="set-row" data-grp="cWhat">
+      <label class="chk"><input type="checkbox" value="adjComp" checked> Adjective comparative</label>
+      <label class="chk"><input type="checkbox" value="adjSup" checked> Adjective superlative</label>
+      <label class="chk"><input type="checkbox" value="advPos"> Adverb (positive)</label>
+      <label class="chk"><input type="checkbox" value="advComp"> Adverb comparative</label>
+      <label class="chk"><input type="checkbox" value="advSup"> Adverb superlative</label>
+    </div></div>
+  </div>
+
+  <!-- PRONOUN OPTIONS -->
+  <div class="panel options hidden" id="opt-pron">
+    <div class="set-group"><span class="set-label">Pronouns</span><div class="set-row" data-grp="pWhich">
+      <label class="chk"><input type="checkbox" value="is" checked> is, ea, id</label>
+      <label class="chk"><input type="checkbox" value="hic" checked> hic, haec, hoc</label>
+      <label class="chk"><input type="checkbox" value="ille" checked> ille, illa, illud</label>
+      <label class="chk"><input type="checkbox" value="ipse"> ipse</label>
+      <label class="chk"><input type="checkbox" value="qui"> quī, quae, quod</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Cases</span><div class="set-row" data-grp="pCase">
+      <label class="chk"><input type="checkbox" value="Nom" checked> Nom</label>
+      <label class="chk"><input type="checkbox" value="Gen" checked> Gen</label>
+      <label class="chk"><input type="checkbox" value="Dat" checked> Dat</label>
+      <label class="chk"><input type="checkbox" value="Acc" checked> Acc</label>
+      <label class="chk"><input type="checkbox" value="Abl" checked> Abl</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Gender</span><div class="set-row" data-grp="pGen">
+      <label class="chk"><input type="checkbox" value="m" checked> Masc</label>
+      <label class="chk"><input type="checkbox" value="f" checked> Fem</label>
+      <label class="chk"><input type="checkbox" value="n" checked> Neut</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Number</span>
+      <div class="seg" data-seg="pNum"><button data-v="both" aria-pressed="true">Mixed</button><button data-v="sg" aria-pressed="false">Sing.</button><button data-v="pl" aria-pressed="false">Plur.</button></div>
+    </div>
+  </div>
+
+  <!-- NON-FINITE OPTIONS -->
+  <div class="panel options hidden" id="opt-nonfin">
+    <div class="set-group"><span class="set-label">Forms</span><div class="set-row" data-grp="fWhat">
+      <label class="chk"><input type="checkbox" value="infPresAct" checked> Pres. active infinitive</label>
+      <label class="chk"><input type="checkbox" value="infPresPass" checked> Pres. passive infinitive</label>
+      <label class="chk"><input type="checkbox" value="infPerfAct"> Perf. active infinitive</label>
+      <label class="chk"><input type="checkbox" value="partPresAct" checked> Pres. active participle</label>
+      <label class="chk"><input type="checkbox" value="partPerfPass" checked> Perf. passive participle</label>
+      <label class="chk"><input type="checkbox" value="partFutAct"> Fut. active participle</label>
+      <label class="chk"><input type="checkbox" value="gerundive"> Gerundive</label>
+      <label class="chk"><input type="checkbox" value="imperative" checked> Imperative</label>
+      <label class="chk"><input type="checkbox" value="gerund"> Gerund</label>
+      <label class="chk"><input type="checkbox" value="supine"> Supine</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Conjugations</span><div class="set-row" data-grp="fConj">
+      <label class="chk"><input type="checkbox" value="1" checked> 1st</label>
+      <label class="chk"><input type="checkbox" value="2" checked> 2nd</label>
+      <label class="chk"><input type="checkbox" value="3" checked> 3rd</label>
+      <label class="chk"><input type="checkbox" value="3io" checked> 3rd-iō</label>
+      <label class="chk"><input type="checkbox" value="4" checked> 4th</label>
+    </div></div>
+  </div>
+
+  <!-- ABL ABS OPTIONS -->
+  <div class="panel options hidden" id="opt-ablabs">
+    <div class="set-group"><span class="set-label">Constructions</span><div class="set-row" data-grp="aType">
+      <label class="chk"><input type="checkbox" value="ppp" checked> Perfect Passive Participle</label>
+      <label class="chk"><input type="checkbox" value="presAct" checked> Present Active Participle</label>
+      <label class="chk"><input type="checkbox" value="deponent"> Perfect Deponent Participle</label>
+      <label class="chk"><input type="checkbox" value="adj"> Noun + Adjective</label>
+    </div></div>
+    <div class="set-group"><span class="set-label">Number</span>
+      <div class="seg" data-seg="aNum"><button data-v="both" aria-pressed="true">Mixed</button><button data-v="sg" aria-pressed="false">Sing.</button><button data-v="pl" aria-pressed="false">Plur.</button></div>
+    </div>
+  </div>
+
+  <!-- DRILL CARD -->
+  <div class="panel card">
+    <div class="prompt-tag"><span id="ptag">Produce the form</span><span class="num" id="qnum">#1</span></div>
+    <p class="english" id="prompt">—</p>
+    <div class="vocab" id="vocab"><span class="vlabel">Vocabulary</span></div>
+    <div class="answer-row">
+      <input id="answer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type the Latin form…">
+    </div>
+    <div class="macra" id="macra">
+      <button data-ch="ā">ā</button><button data-ch="ē">ē</button><button data-ch="ī">ī</button>
+      <button data-ch="ō">ō</button><button data-ch="ū">ū</button><button data-ch="ȳ">ȳ</button>
+      <span class="hint">click to insert, or type without macrons</span>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" id="checkBtn">Check answer</button>
+      <button class="btn btn-ghost" id="nextBtn">Next →</button>
+      <label class="macstrict"><input type="checkbox" id="macStrict"> require macrons</label>
+    </div>
+    <div class="assign-row">
+      <label class="assign-label">Assignment goal:
+        <input type="number" id="targetInput" min="0" step="5" value="0" placeholder="0">
+        <span class="assign-hint">questions (0 = practice freely)</span>
+      </label>
+      <div class="assign-progress" id="assignProgress"></div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="stats">
+    <span>Answered <b id="sAns">0</b></span>
+    <span>Correct <b id="sCor">0</b></span>
+    <span>Accuracy <b id="sPct">—</b></span>
+  </div>
+
+  <div class="panel logwrap">
+    <h2>Practice record</h2>
+    <div class="log" id="log"><span class="empty">Answered questions appear here, newest first.</span></div>
+  </div>
+
+  <footer>Created by Ido Eyal</footer>
+</div>
+
+<script>
+/* ================================================================
+   LATIN MORPHOLOGY ENGINE v2
+   - Full noun declension (decl 1-5 incl. variants), all cases x number
+   - Full regular verb conjugation: indicative active (6 tenses),
+     indicative passive (pres/impf/fut), subjunctive active (4),
+     subjunctive passive (pres/impf); + irregulars sum, possum, eo
+   - Participles (for ablative absolutes)
+   - Ablative absolute question generator
+   All rule-based: store principal parts, generate forms.
+   ================================================================ */
+
+/* ---------------- WORD BANK: NOUNS ----------------
+   decl: 1 2m 2r 2n 3 3n 3i 3in 4 4n 5  | gender m/f/n
+   eng: {sg,pl} present only on the ablative-absolute pool */
+const NOUNS = [
+  // --- 1st declension (f, + a few m) ---
+  {id:'puella', nom:'puella', stem:'puell', decl:'1', gender:'f', gloss:'girl', eng:{sg:'girl',pl:'girls'}},
+  {id:'femina', nom:'fēmina', stem:'fēmin', decl:'1', gender:'f', gloss:'woman', eng:{sg:'woman',pl:'women'}},
+  {id:'aqua', nom:'aqua', stem:'aqu', decl:'1', gender:'f', gloss:'water'},
+  {id:'terra', nom:'terra', stem:'terr', decl:'1', gender:'f', gloss:'land', eng:{sg:'land',pl:'lands'}},
+  {id:'via', nom:'via', stem:'vi', decl:'1', gender:'f', gloss:'road', eng:{sg:'road',pl:'roads'}},
+  {id:'insula', nom:'īnsula', stem:'īnsul', decl:'1', gender:'f', gloss:'island', eng:{sg:'island',pl:'islands'}},
+  {id:'pugna', nom:'pugna', stem:'pugn', decl:'1', gender:'f', gloss:'battle', eng:{sg:'battle',pl:'battles'}},
+  {id:'regina', nom:'rēgīna', stem:'rēgīn', decl:'1', gender:'f', gloss:'queen', eng:{sg:'queen',pl:'queens'}},
+  {id:'filia', nom:'fīlia', stem:'fīli', decl:'1', gender:'f', gloss:'daughter', eng:{sg:'daughter',pl:'daughters'}},
+  {id:'nauta', nom:'nauta', stem:'naut', decl:'1', gender:'m', gloss:'sailor', eng:{sg:'sailor',pl:'sailors'}},
+  {id:'poeta', nom:'poēta', stem:'poēt', decl:'1', gender:'m', gloss:'poet', eng:{sg:'poet',pl:'poets'}},
+  // --- 2nd masculine (-us) ---
+  {id:'servus', nom:'servus', stem:'serv', decl:'2m', gender:'m', gloss:'slave', eng:{sg:'slave',pl:'slaves'}},
+  {id:'dominus', nom:'dominus', stem:'domin', decl:'2m', gender:'m', gloss:'master', eng:{sg:'master',pl:'masters'}},
+  {id:'amicus', nom:'amīcus', stem:'amīc', decl:'2m', gender:'m', gloss:'friend', eng:{sg:'friend',pl:'friends'}},
+  {id:'filius', nom:'fīlius', stem:'fīli', decl:'2m', gender:'m', gloss:'son', eng:{sg:'son',pl:'sons'}},
+  {id:'equus', nom:'equus', stem:'equ', decl:'2m', gender:'m', gloss:'horse', eng:{sg:'horse',pl:'horses'}},
+  {id:'murus', nom:'mūrus', stem:'mūr', decl:'2m', gender:'m', gloss:'wall', eng:{sg:'wall',pl:'walls'}},
+  {id:'hortus', nom:'hortus', stem:'hort', decl:'2m', gender:'m', gloss:'garden', eng:{sg:'garden',pl:'gardens'}},
+  {id:'tyrannus', nom:'tyrannus', stem:'tyrann', decl:'2m', gender:'m', gloss:'tyrant', eng:{sg:'tyrant',pl:'tyrants'}},
+  // --- 2nd masculine (-er) ---
+  {id:'puer', nom:'puer', stem:'puer', decl:'2r', gender:'m', gloss:'boy', eng:{sg:'boy',pl:'boys'}},
+  {id:'magister', nom:'magister', stem:'magistr', decl:'2r', gender:'m', gloss:'teacher', eng:{sg:'teacher',pl:'teachers'}},
+  {id:'ager', nom:'ager', stem:'agr', decl:'2r', gender:'m', gloss:'field', eng:{sg:'field',pl:'fields'}},
+  {id:'liber', nom:'liber', stem:'libr', decl:'2r', gender:'m', gloss:'book', eng:{sg:'book',pl:'books'}},
+  {id:'vir', nom:'vir', stem:'vir', decl:'2r', gender:'m', gloss:'man', eng:{sg:'man',pl:'men'}},
+  // --- 2nd neuter ---
+  {id:'bellum', nom:'bellum', stem:'bell', decl:'2n', gender:'n', gloss:'war', eng:{sg:'war',pl:'wars'}},
+  {id:'oppidum', nom:'oppidum', stem:'oppid', decl:'2n', gender:'n', gloss:'town', eng:{sg:'town',pl:'towns'}},
+  {id:'templum', nom:'templum', stem:'templ', decl:'2n', gender:'n', gloss:'temple', eng:{sg:'temple',pl:'temples'}},
+  {id:'donum', nom:'dōnum', stem:'dōn', decl:'2n', gender:'n', gloss:'gift', eng:{sg:'gift',pl:'gifts'}},
+  {id:'verbum', nom:'verbum', stem:'verb', decl:'2n', gender:'n', gloss:'word', eng:{sg:'word',pl:'words'}},
+  {id:'periculum', nom:'perīculum', stem:'perīcul', decl:'2n', gender:'n', gloss:'danger', eng:{sg:'danger',pl:'dangers'}},
+  // --- 3rd consonant m/f ---
+  {id:'rex', nom:'rēx', stem:'rēg', decl:'3', gender:'m', gloss:'king', eng:{sg:'king',pl:'kings'}},
+  {id:'dux', nom:'dux', stem:'duc', decl:'3', gender:'m', gloss:'leader', eng:{sg:'leader',pl:'leaders'}},
+  {id:'miles', nom:'mīles', stem:'mīlit', decl:'3', gender:'m', gloss:'soldier', eng:{sg:'soldier',pl:'soldiers'}},
+  {id:'mater', nom:'māter', stem:'mātr', decl:'3', gender:'f', gloss:'mother', eng:{sg:'mother',pl:'mothers'}},
+  {id:'pater', nom:'pater', stem:'patr', decl:'3', gender:'m', gloss:'father', eng:{sg:'father',pl:'fathers'}},
+  {id:'frater', nom:'frāter', stem:'frātr', decl:'3', gender:'m', gloss:'brother', eng:{sg:'brother',pl:'brothers'}},
+  {id:'soror', nom:'soror', stem:'sorōr', decl:'3', gender:'f', gloss:'sister', eng:{sg:'sister',pl:'sisters'}},
+  {id:'homo', nom:'homō', stem:'homin', decl:'3', gender:'m', gloss:'man, person', eng:{sg:'man',pl:'men'}},
+  {id:'leo', nom:'leō', stem:'leōn', decl:'3', gender:'m', gloss:'lion', eng:{sg:'lion',pl:'lions'}},
+  {id:'virtus', nom:'virtūs', stem:'virtūt', decl:'3', gender:'f', gloss:'courage'},
+  {id:'vox', nom:'vōx', stem:'vōc', decl:'3', gender:'f', gloss:'voice', eng:{sg:'voice',pl:'voices'}},
+  {id:'versipellis', nom:'versipellis', stem:'versipell', decl:'3', gender:'m', gloss:'werewolf', eng:{sg:'werewolf',pl:'werewolves'}},
+  // --- 3rd consonant neuter ---
+  {id:'corpus', nom:'corpus', stem:'corpor', decl:'3n', gender:'n', gloss:'body', eng:{sg:'body',pl:'bodies'}},
+  {id:'nomen', nom:'nōmen', stem:'nōmin', decl:'3n', gender:'n', gloss:'name', eng:{sg:'name',pl:'names'}},
+  {id:'tempus', nom:'tempus', stem:'tempor', decl:'3n', gender:'n', gloss:'time'},
+  {id:'opus', nom:'opus', stem:'oper', decl:'3n', gender:'n', gloss:'work'},
+  {id:'flumen', nom:'flūmen', stem:'flūmin', decl:'3n', gender:'n', gloss:'river', eng:{sg:'river',pl:'rivers'}},
+  // --- 3rd i-stem m/f ---
+  {id:'urbs', nom:'urbs', stem:'urb', decl:'3i', gender:'f', gloss:'city', eng:{sg:'city',pl:'cities'}},
+  {id:'civis', nom:'cīvis', stem:'cīv', decl:'3i', gender:'m', gloss:'citizen', eng:{sg:'citizen',pl:'citizens'}},
+  {id:'hostis', nom:'hostis', stem:'host', decl:'3i', gender:'m', gloss:'enemy', eng:{sg:'enemy',pl:'enemies'}},
+  {id:'navis', nom:'nāvis', stem:'nāv', decl:'3i', gender:'f', gloss:'ship', eng:{sg:'ship',pl:'ships'}},
+  {id:'ignis', nom:'ignis', stem:'ign', decl:'3i', gender:'m', gloss:'fire'},
+  {id:'mons', nom:'mōns', stem:'mont', decl:'3i', gender:'m', gloss:'mountain', eng:{sg:'mountain',pl:'mountains'}},
+  {id:'nox', nom:'nox', stem:'noct', decl:'3i', gender:'f', gloss:'night'},
+  // --- 3rd i-stem neuter ---
+  {id:'mare', nom:'mare', stem:'mar', decl:'3in', gender:'n', gloss:'sea'},
+  {id:'animal', nom:'animal', stem:'animāl', decl:'3in', gender:'n', gloss:'animal', eng:{sg:'animal',pl:'animals'}},
+  // --- 4th m/f ---
+  {id:'manus', nom:'manus', stem:'man', decl:'4', gender:'f', gloss:'hand', eng:{sg:'hand',pl:'hands'}},
+  {id:'exercitus', nom:'exercitus', stem:'exercit', decl:'4', gender:'m', gloss:'army', eng:{sg:'army',pl:'armies'}},
+  {id:'portus', nom:'portus', stem:'port', decl:'4', gender:'m', gloss:'harbor', eng:{sg:'harbor',pl:'harbors'}},
+  {id:'domus', nom:'domus', stem:'dom', decl:'4', gender:'f', gloss:'house', eng:{sg:'house',pl:'houses'}},
+  // --- 4th neuter ---
+  {id:'cornu', nom:'cornū', stem:'corn', decl:'4n', gender:'n', gloss:'horn'},
+  {id:'genu', nom:'genū', stem:'gen', decl:'4n', gender:'n', gloss:'knee'},
+  // --- 5th ---
+  {id:'dies', nom:'diēs', stem:'di', decl:'5', gender:'m', gloss:'day', eng:{sg:'day',pl:'days'}},
+  {id:'res', nom:'rēs', stem:'r', decl:'5', gender:'f', gloss:'thing', eng:{sg:'thing',pl:'things'}},
+  {id:'fides', nom:'fidēs', stem:'fid', decl:'5', gender:'f', gloss:'faith'},
+  {id:'spes', nom:'spēs', stem:'sp', decl:'5', gender:'f', gloss:'hope'},
+  {id:'acies', nom:'aciēs', stem:'aci', decl:'5', gender:'f', gloss:'battle line'},
+  // pronoun is/ea/id (ablative-absolute use)
+  {id:'is', nom:'is', dict:'is, ea, id (he, she, it; they)', decl:'pron', gender:'m', eng:{sg:'him',pl:'them'}, pronoun:true, ablSg:'eō', ablPl:'eīs'},
+];
+
+/* ---------------- WORD BANK: VERBS ----------------
+   conj: 1 2 3 3io 4 ; deponent? ; eng:{ing,pp} on ablative-absolute pool */
+const VERBS = [
+  // 1st
+  {id:'amo', p1:'amō', inf:'amāre', perf:'amāvī', ppp:'amātus', conj:'1', gloss:'love', eng:{ing:'loving',pp:'loved'}},
+  {id:'porto', p1:'portō', inf:'portāre', perf:'portāvī', ppp:'portātus', conj:'1', gloss:'carry', eng:{ing:'carrying',pp:'carried'}},
+  {id:'voco', p1:'vocō', inf:'vocāre', perf:'vocāvī', ppp:'vocātus', conj:'1', gloss:'call', eng:{ing:'calling',pp:'called'}},
+  {id:'laudo', p1:'laudō', inf:'laudāre', perf:'laudāvī', ppp:'laudātus', conj:'1', gloss:'praise', eng:{ing:'praising',pp:'praised'}},
+  {id:'pugno', p1:'pugnō', inf:'pugnāre', perf:'pugnāvī', ppp:'pugnātus', conj:'1', gloss:'fight'},
+  {id:'specto', p1:'spectō', inf:'spectāre', perf:'spectāvī', ppp:'spectātus', conj:'1', gloss:'watch', eng:{ing:'watching',pp:'watched'}},
+  {id:'paro', p1:'parō', inf:'parāre', perf:'parāvī', ppp:'parātus', conj:'1', gloss:'prepare', eng:{ing:'preparing',pp:'prepared'}},
+  {id:'neco', p1:'necō', inf:'necāre', perf:'necāvī', ppp:'necātus', conj:'1', gloss:'kill', eng:{ing:'killing',pp:'killed'}},
+  // 2nd
+  {id:'moneo', p1:'moneō', inf:'monēre', perf:'monuī', ppp:'monitus', conj:'2', gloss:'warn', eng:{ing:'warning',pp:'warned'}},
+  {id:'video', p1:'videō', inf:'vidēre', perf:'vīdī', ppp:'vīsus', conj:'2', gloss:'see', eng:{ing:'seeing',pp:'seen'}},
+  {id:'teneo', p1:'teneō', inf:'tenēre', perf:'tenuī', ppp:'tentus', conj:'2', gloss:'hold', eng:{ing:'holding',pp:'held'}},
+  {id:'habeo', p1:'habeō', inf:'habēre', perf:'habuī', ppp:'habitus', conj:'2', gloss:'have', eng:{ing:'having',pp:'had'}},
+  {id:'terreo', p1:'terreō', inf:'terrēre', perf:'terruī', ppp:'territus', conj:'2', gloss:'frighten', eng:{ing:'frightening',pp:'frightened'}},
+  {id:'maneo', p1:'maneō', inf:'manēre', perf:'mānsī', ppp:'mānsus', conj:'2', gloss:'remain'},
+  {id:'iubeo', p1:'iubeō', inf:'iubēre', perf:'iussī', ppp:'iussus', conj:'2', gloss:'order', eng:{ing:'ordering',pp:'ordered'}},
+  // 3rd
+  {id:'rego', p1:'regō', inf:'regere', perf:'rēxī', ppp:'rēctus', conj:'3', gloss:'rule', eng:{ing:'ruling',pp:'ruled'}},
+  {id:'duco', p1:'dūcō', inf:'dūcere', perf:'dūxī', ppp:'ductus', conj:'3', gloss:'lead', eng:{ing:'leading',pp:'led'}},
+  {id:'dico', p1:'dīcō', inf:'dīcere', perf:'dīxī', ppp:'dictus', conj:'3', gloss:'speak', eng:{ing:'speaking',pp:'spoken'}},
+  {id:'mitto', p1:'mittō', inf:'mittere', perf:'mīsī', ppp:'missus', conj:'3', gloss:'send', eng:{ing:'sending',pp:'sent'}},
+  {id:'scribo', p1:'scrībō', inf:'scrībere', perf:'scrīpsī', ppp:'scrīptus', conj:'3', gloss:'write', eng:{ing:'writing',pp:'written'}},
+  {id:'ago', p1:'agō', inf:'agere', perf:'ēgī', ppp:'āctus', conj:'3', gloss:'do, drive'},
+  {id:'gero', p1:'gerō', inf:'gerere', perf:'gessī', ppp:'gestus', conj:'3', gloss:'wage, carry'},
+  {id:'vinco', p1:'vincō', inf:'vincere', perf:'vīcī', ppp:'victus', conj:'3', gloss:'conquer', eng:{ing:'conquering',pp:'conquered'}},
+  {id:'pono', p1:'pōnō', inf:'pōnere', perf:'posuī', ppp:'positus', conj:'3', gloss:'place', eng:{ing:'placing',pp:'placed'}},
+  {id:'peto', p1:'petō', inf:'petere', perf:'petīvī', ppp:'petītus', conj:'3', gloss:'seek', eng:{ing:'seeking',pp:'sought'}},
+  {id:'lego', p1:'legō', inf:'legere', perf:'lēgī', ppp:'lēctus', conj:'3', gloss:'read, choose'},
+  // 3rd-io
+  {id:'capio', p1:'capiō', inf:'capere', perf:'cēpī', ppp:'captus', conj:'3io', gloss:'capture, take', eng:{ing:'capturing',pp:'captured'}},
+  {id:'facio', p1:'faciō', inf:'facere', perf:'fēcī', ppp:'factus', conj:'3io', gloss:'make, do', eng:{ing:'making',pp:'made'}},
+  {id:'iacio', p1:'iaciō', inf:'iacere', perf:'iēcī', ppp:'iactus', conj:'3io', gloss:'throw', eng:{ing:'throwing',pp:'thrown'}},
+  {id:'fugio', p1:'fugiō', inf:'fugere', perf:'fūgī', ppp:'fugitus', conj:'3io', gloss:'flee'},
+  {id:'interficio', p1:'interficiō', inf:'interficere', perf:'interfēcī', ppp:'interfectus', conj:'3io', gloss:'kill', eng:{ing:'killing',pp:'killed'}},
+  {id:'cupio', p1:'cupiō', inf:'cupere', perf:'cupīvī', ppp:'cupītus', conj:'3io', gloss:'desire'},
+  // 4th
+  {id:'audio', p1:'audiō', inf:'audīre', perf:'audīvī', ppp:'audītus', conj:'4', gloss:'hear', eng:{ing:'hearing',pp:'heard'}},
+  {id:'venio', p1:'veniō', inf:'venīre', perf:'vēnī', ppp:'ventus', conj:'4', gloss:'come'},
+  {id:'dormio', p1:'dormiō', inf:'dormīre', perf:'dormīvī', ppp:'dormītus', conj:'4', gloss:'sleep'},
+  {id:'scio', p1:'sciō', inf:'scīre', perf:'scīvī', ppp:'scītus', conj:'4', gloss:'know'},
+  {id:'custodio', p1:'custōdiō', inf:'custōdīre', perf:'custōdīvī', ppp:'custōdītus', conj:'4', gloss:'guard', eng:{ing:'guarding',pp:'guarded'}},
+  {id:'invenio', p1:'inveniō', inf:'invenīre', perf:'invēnī', ppp:'inventus', conj:'4', gloss:'find', eng:{ing:'finding',pp:'found'}},
+  {id:'impedio', p1:'impediō', inf:'impedīre', perf:'impedīvī', ppp:'impedītus', conj:'4', gloss:'hinder', eng:{ing:'hindering',pp:'hindered'}},
+  // deponents (ablative absolute / participle use only)
+  {id:'loquor', p1:'loquor', inf:'loquī', perf:'locūtus sum', ppp:'locūtus', conj:'3', deponent:true, gloss:'speak', eng:{ing:'speaking',pp:'spoken'}},
+  {id:'proficiscor', p1:'proficīscor', inf:'proficīscī', perf:'profectus sum', ppp:'profectus', conj:'3', deponent:true, gloss:'set out', eng:{ing:'setting out',pp:'set out'}},
+  {id:'sequor', p1:'sequor', inf:'sequī', perf:'secūtus sum', ppp:'secūtus', conj:'3', deponent:true, gloss:'follow', eng:{ing:'following',pp:'followed'}},
+  {id:'conor', p1:'cōnor', inf:'cōnārī', perf:'cōnātus sum', ppp:'cōnātus', conj:'1', deponent:true, gloss:'try', eng:{ing:'trying',pp:'tried'}},
+  // irregular (conjugation drill, active only)
+  {id:'sum', p1:'sum', inf:'esse', perf:'fuī', ppp:'futūrus', conj:'irr', gloss:'be', irregular:'sum'},
+  {id:'possum', p1:'possum', inf:'posse', perf:'potuī', ppp:null, conj:'irr', gloss:'be able', irregular:'possum'},
+  {id:'eo', p1:'eō', inf:'īre', perf:'iī', ppp:'itūrus', conj:'irr', gloss:'go', irregular:'eo'},
+];
+
+/* ---------------- WORD BANK: ADJECTIVES (212) ---------------- */
+const ADJS = [
+  {id:'bonus', nom:'bonus', stem:'bon', type:'212', gloss:'good', eng:'good'},
+  {id:'magnus', nom:'magnus', stem:'magn', type:'212', gloss:'big', eng:'big'},
+  {id:'malus', nom:'malus', stem:'mal', type:'212', gloss:'bad', eng:'bad'},
+  {id:'parvus', nom:'parvus', stem:'parv', type:'212', gloss:'small', eng:'small'},
+  {id:'multus', nom:'multus', stem:'mult', type:'212', gloss:'much', eng:'many'},
+  {id:'longus', nom:'longus', stem:'long', type:'212', gloss:'long', eng:'long'},
+  {id:'novus', nom:'novus', stem:'nov', type:'212', gloss:'new', eng:'new'},
+  {id:'laetus', nom:'laetus', stem:'laet', type:'212', gloss:'happy', eng:'happy'},
+  {id:'iratus', nom:'īrātus', stem:'īrāt', type:'212', gloss:'angry', eng:'angry'},
+  {id:'fessus', nom:'fessus', stem:'fess', type:'212', gloss:'tired', eng:'tired'},
+  {id:'mortuus', nom:'mortuus', stem:'mortu', type:'212', gloss:'dead', eng:'dead'},
+  {id:'vivus', nom:'vīvus', stem:'vīv', type:'212', gloss:'alive', eng:'alive'},
+];
+
+/* ================================================================
+   NOUN DECLENSION
+   ================================================================ */
+const CASES = ['Nom','Gen','Dat','Acc','Abl','Voc'];
+const NEUTER_DECL = {'2n':1,'3n':1,'3in':1,'4n':1};
+const ENDINGS = {
+  '1':  {sg:[null,'ae','ae','am','ā',null], pl:['ae','ārum','īs','ās','īs','ae']},
+  '2m': {sg:[null,'ī','ō','um','ō',null],  pl:['ī','ōrum','īs','ōs','īs','ī']},
+  '2r': {sg:[null,'ī','ō','um','ō',null],  pl:['ī','ōrum','īs','ōs','īs','ī']},
+  '2n': {sg:[null,'ī','ō',null,'ō',null],  pl:['a','ōrum','īs','a','īs','a']},
+  '3':  {sg:[null,'is','ī','em','e',null], pl:['ēs','um','ibus','ēs','ibus','ēs']},
+  '3n': {sg:[null,'is','ī',null,'e',null], pl:['a','um','ibus','a','ibus','a']},
+  '3i': {sg:[null,'is','ī','em','e',null], pl:['ēs','ium','ibus','ēs','ibus','ēs']},
+  '3in':{sg:[null,'is','ī',null,'ī',null], pl:['ia','ium','ibus','ia','ibus','ia']},
+  '4':  {sg:[null,'ūs','uī','um','ū',null],pl:['ūs','uum','ibus','ūs','ibus','ūs']},
+  '4n': {sg:[null,'ūs','ū',null,'ū',null], pl:['ua','uum','ibus','ua','ibus','ua']},
+  '5':  {sg:[null,'eī','eī','em','ē',null],pl:['ēs','ērum','ēbus','ēs','ēbus','ēs']},
+};
+const VOWELS = ['a','e','i','o','u','ā','ē','ī','ō','ū','y','ȳ'];
+function vocSg(n){
+  if(n.decl==='2m'){ return n.nom.endsWith('ius') ? n.nom.replace(/ius$/,'ī') : n.stem+'e'; }
+  return n.nom; // all other declensions: vocative sg = nominative sg
+}
+function nounForm(n, c, num){
+  if(n.decl==='pron'){ return num==='pl'?n.ablPl:n.ablSg; } // pronoun: ablative only
+  const i = CASES.indexOf(c), E = ENDINGS[n.decl], neut = NEUTER_DECL[n.decl];
+  if(num==='sg'){
+    if(c==='Nom') return n.nom;
+    if(c==='Voc') return vocSg(n);
+    if(neut && c==='Acc') return n.nom;
+    if(n.decl==='5' && (c==='Gen'||c==='Dat')){
+      const long = VOWELS.includes(n.stem.slice(-1)); // diēī (after vowel) vs reī (after cons)
+      return n.stem + (long ? 'ēī' : 'eī');
+    }
+    return n.stem + E.sg[i];
+  } else {
+    if(neut && (c==='Nom'||c==='Acc'||c==='Voc')) return n.stem + E.pl[0];
+    return n.stem + E.pl[i];
+  }
+}
+function nounDictForm(n){
+  if(n.dict) return n.dict;
+  const g = {m:'m.',f:'f.',n:'n.'}[n.gender];
+  return `${n.nom}, ${nounForm(n,'Gen','sg')} (${g}) — ${n.gloss}`;
+}
+
+/* ================================================================
+   VERB CONJUGATION (regular) + irregulars
+   ================================================================ */
+function vroot(v){
+  return {'1':v.inf.replace(/āre$/,''),'2':v.inf.replace(/ēre$/,''),
+          '3':v.inf.replace(/ere$/,''),'3io':v.inf.replace(/ere$/,''),
+          '4':v.inf.replace(/īre$/,'')}[v.conj];
+}
+function perfStem(v){ return v.perf.replace(/ī$/,''); }
+function infStem2(v){ return v.inf.replace(/e$/,''); } // for impf subjunctive
+
+// returns array of 6 forms [1sg,2sg,3sg,1pl,2pl,3pl]
+function pluck(base, ends){ return ends.map(e=>base+e); }
+function regularSet(v, mood, tense, voice){
+  const R = vroot(v), P = perfStem(v), c = v.conj, S2 = infStem2(v);
+  const A = (arr)=>arr.map(e=>R+e);
+  if(voice==='active'){
+    if(mood==='indicative'){
+      if(tense==='present') return ({
+        '1':A(['ō','ās','at','āmus','ātis','ant']), '2':A(['eō','ēs','et','ēmus','ētis','ent']),
+        '3':A(['ō','is','it','imus','itis','unt']), '3io':A(['iō','is','it','imus','itis','iunt']),
+        '4':A(['iō','īs','it','īmus','ītis','iunt'])})[c];
+      if(tense==='imperfect'){ const b={'1':R+'ā','2':R+'ē','3':R+'ē','3io':R+'iē','4':R+'iē'}[c];
+        return pluck(b,['bam','bās','bat','bāmus','bātis','bant']); }
+      if(tense==='future'){
+        if(c==='1'||c==='2'){ const b=R+(c==='1'?'ā':'ē'); return pluck(b,['bō','bis','bit','bimus','bitis','bunt']); }
+        if(c==='3') return A(['am','ēs','et','ēmus','ētis','ent']);
+        return A(['iam','iēs','iet','iēmus','iētis','ient']); // 3io,4
+      }
+      if(tense==='perfect') return pluck(P,['ī','istī','it','imus','istis','ērunt']);
+      if(tense==='pluperfect') return pluck(P,['eram','erās','erat','erāmus','erātis','erant']);
+      if(tense==='futureperfect') return pluck(P,['erō','eris','erit','erimus','eritis','erint']);
+    }
+    if(mood==='subjunctive'){
+      if(tense==='present') return ({
+        '1':A(['em','ēs','et','ēmus','ētis','ent']), '2':A(['eam','eās','eat','eāmus','eātis','eant']),
+        '3':A(['am','ās','at','āmus','ātis','ant']), '3io':A(['iam','iās','iat','iāmus','iātis','iant']),
+        '4':A(['iam','iās','iat','iāmus','iātis','iant'])})[c];
+      if(tense==='imperfect') return pluck(S2,['em','ēs','et','ēmus','ētis','ent']);
+      if(tense==='perfect') return pluck(P,['erim','erīs','erit','erīmus','erītis','erint']);
+      if(tense==='pluperfect') return pluck(P,['issem','issēs','isset','issēmus','issētis','issent']);
+    }
+  } else { // passive (present system only)
+    if(mood==='indicative'){
+      if(tense==='present') return ({
+        '1':A(['or','āris','ātur','āmur','āminī','antur']), '2':A(['eor','ēris','ētur','ēmur','ēminī','entur']),
+        '3':A(['or','eris','itur','imur','iminī','untur']), '3io':A(['ior','eris','itur','imur','iminī','iuntur']),
+        '4':A(['ior','īris','ītur','īmur','īminī','iuntur'])})[c];
+      if(tense==='imperfect'){ const b={'1':R+'ā','2':R+'ē','3':R+'ē','3io':R+'iē','4':R+'iē'}[c];
+        return pluck(b,['bar','bāris','bātur','bāmur','bāminī','bantur']); }
+      if(tense==='future'){
+        if(c==='1'||c==='2'){ const b=R+(c==='1'?'ā':'ē'); return pluck(b,['bor','beris','bitur','bimur','biminī','buntur']); }
+        if(c==='3') return A(['ar','ēris','ētur','ēmur','ēminī','entur']);
+        return A(['iar','iēris','iētur','iēmur','iēminī','ientur']);
+      }
+    }
+    if(mood==='subjunctive'){
+      if(tense==='present') return ({
+        '1':A(['er','ēris','ētur','ēmur','ēminī','entur']), '2':A(['ear','eāris','eātur','eāmur','eāminī','eantur']),
+        '3':A(['ar','āris','ātur','āmur','āminī','antur']), '3io':A(['iar','iāris','iātur','iāmur','iāminī','iantur']),
+        '4':A(['iar','iāris','iātur','iāmur','iāminī','iantur'])})[c];
+      if(tense==='imperfect') return pluck(S2,['er','ēris','ētur','ēmur','ēminī','entur']);
+    }
+  }
+  return null;
+}
+
+/* irregular tables: active only; [1sg,2sg,3sg,1pl,2pl,3pl] */
+const IRREGULAR = {
+  sum:{ indicative:{
+      present:['sum','es','est','sumus','estis','sunt'],
+      imperfect:['eram','erās','erat','erāmus','erātis','erant'],
+      future:['erō','eris','erit','erimus','eritis','erunt'],
+      perfect:['fuī','fuistī','fuit','fuimus','fuistis','fuērunt'],
+      pluperfect:['fueram','fuerās','fuerat','fuerāmus','fuerātis','fuerant'],
+      futureperfect:['fuerō','fueris','fuerit','fuerimus','fueritis','fuerint']},
+    subjunctive:{
+      present:['sim','sīs','sit','sīmus','sītis','sint'],
+      imperfect:['essem','essēs','esset','essēmus','essētis','essent'],
+      perfect:['fuerim','fuerīs','fuerit','fuerīmus','fuerītis','fuerint'],
+      pluperfect:['fuissem','fuissēs','fuisset','fuissēmus','fuissētis','fuissent']}},
+  possum:{ indicative:{
+      present:['possum','potes','potest','possumus','potestis','possunt'],
+      imperfect:['poteram','poterās','poterat','poterāmus','poterātis','poterant'],
+      future:['poterō','poteris','poterit','poterimus','poteritis','poterunt'],
+      perfect:['potuī','potuistī','potuit','potuimus','potuistis','potuērunt'],
+      pluperfect:['potueram','potuerās','potuerat','potuerāmus','potuerātis','potuerant'],
+      futureperfect:['potuerō','potueris','potuerit','potuerimus','potueritis','potuerint']},
+    subjunctive:{
+      present:['possim','possīs','possit','possīmus','possītis','possint'],
+      imperfect:['possem','possēs','posset','possēmus','possētis','possent'],
+      perfect:['potuerim','potuerīs','potuerit','potuerīmus','potuerītis','potuerint'],
+      pluperfect:['potuissem','potuissēs','potuisset','potuissēmus','potuissētis','potuissent']}},
+  eo:{ indicative:{
+      present:['eō','īs','it','īmus','ītis','eunt'],
+      imperfect:['ībam','ībās','ībat','ībāmus','ībātis','ībant'],
+      future:['ībō','ībis','ībit','ībimus','ībitis','ībunt'],
+      perfect:['iī','īstī','iit','iimus','īstis','iērunt'],
+      pluperfect:['ieram','ierās','ierat','ierāmus','ierātis','ierant'],
+      futureperfect:['ierō','ieris','ierit','ierimus','ieritis','ierint']},
+    subjunctive:{
+      present:['eam','eās','eat','eāmus','eātis','eant'],
+      imperfect:['īrem','īrēs','īret','īrēmus','īrētis','īrent'],
+      perfect:['ierim','ierīs','ierit','ierīmus','ierītis','ierint'],
+      pluperfect:['īssem','īssēs','īsset','īssēmus','īssētis','īssent']}},
+};
+
+const PERSON_IDX = {1:0,2:1,3:2};
+function verbForm(v, spec){ // spec {mood,tense,voice,person,number}
+  const idx = PERSON_IDX[spec.person] + (spec.number==='pl'?3:0);
+  if(v.irregular){
+    const t = (IRREGULAR[v.irregular][spec.mood]||{})[spec.tense];
+    return t ? t[idx] : null;
+  }
+  const set = regularSet(v, spec.mood, spec.tense, spec.voice);
+  return set ? set[idx] : null;
+}
+function verbDictForm(v){
+  if(v.irregular) return `${v.p1}, ${v.inf}, ${v.perf} — ${v.gloss}`;
+  const second = v.deponent ? v.inf : {'1':'-āre','2':'-ēre','3':'-ere','3io':'-ere','4':'-īre'}[v.conj];
+  return `${v.p1}, ${second}, ${v.perf}, ${v.ppp} — ${v.gloss}`;
+}
+
+/* ================================================================
+   PARTICIPLES + ABLATIVE ABSOLUTE
+   ================================================================ */
+function pppAblative(v, gender, number){
+  const s = v.ppp.replace(/us$/,'');
+  if(number==='pl') return s+'īs';
+  return gender==='f' ? s+'ā' : s+'ō';
+}
+function presPartStem(v){
+  return ({'1':v.inf.replace(/āre$/,'')+'ant','2':v.inf.replace(/ēre$/,'')+'ent',
+           '3':v.inf.replace(/ere$/,'')+'ent','3io':v.inf.replace(/ere$/,'')+'ient',
+           '4':v.inf.replace(/īre$/,'')+'ient'})[v.conj];
+}
+function presPartAblative(v, number){ const s=presPartStem(v); return number==='pl'?s+'ibus':s+'e'; }
+function adjAblative(a, gender, number){ if(number==='pl') return a.stem+'īs'; return gender==='f'?a.stem+'ā':a.stem+'ō'; }
+function nounAblAbs(n, number){ if(n.pronoun) return number==='pl'?n.ablPl:n.ablSg; return nounForm(n,'Abl',number); }
+
+const CONSTR = { ppp:'Noun + Perfect Passive Participle', presAct:'Noun + Present Active Participle',
+  deponent:'Noun + Perfect Deponent Participle', adj:'Noun + Adjective' };
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function subjEng(n,num){ if(n.pronoun) return num==='pl'?n.eng.pl:n.eng.sg; return (num==='pl'?'the '+n.eng.pl:'the '+n.eng.sg); }
+const ABLABS_NOUNS = NOUNS.filter(n=>n.eng);
+const ABLABS_VERBS = VERBS.filter(v=>v.eng && !v.deponent && v.ppp);
+const DEP_VERBS = VERBS.filter(v=>v.deponent);
+function nounDictAbl(n){ if(n.dict) return n.dict; return `${n.nom}, ${nounForm(n,'Gen','sg')} (${n.eng.sg})`; }
+
+function makeAblAbs(type, num){
+  const noun = pick(ABLABS_NOUNS); const subj = subjEng(noun,num); const nAbl = nounAblAbs(noun,num);
+  let english, latin, vocab;
+  if(type==='ppp'){ const v=pick(ABLABS_VERBS); english=`With ${subj} having been ${v.eng.pp}...`; latin=`${nAbl} ${pppAblative(v,noun.gender,num)}`; vocab=[nounDictAbl(noun),verbDictForm(v)]; }
+  else if(type==='presAct'){ const v=pick(ABLABS_VERBS); english=`With ${subj} ${v.eng.ing}...`; latin=`${nAbl} ${presPartAblative(v,num)}`; vocab=[nounDictAbl(noun),verbDictForm(v)]; }
+  else if(type==='deponent'){ const v=pick(DEP_VERBS); english=`With ${subj} having ${v.eng.pp}...`; latin=`${nAbl} ${pppAblative(v,noun.gender,num)}`; vocab=[nounDictAbl(noun),verbDictForm(v)]; }
+  else { const a=pick(ADJS); english=`With ${subj} ${a.eng}...`; latin=`${nAbl} ${adjAblative(a,noun.gender,num)}`; vocab=[nounDictAbl(noun),`${a.nom}, -a, -um (${a.gloss})`]; }
+  return { kind:'ablabs', type, label:CONSTR[type], prompt:english, answer:latin, vocab, num };
+}
+
+/* ================================================================
+   ANSWER CHECKING
+   ================================================================ */
+function stripMacrons(s){ return s.normalize('NFD').replace(/[\u0300-\u0304]/g,'')
+  .replace(/[āăĀ]/g,'a').replace(/[ēĕĒ]/g,'e').replace(/[īĭĪ]/g,'i').replace(/[ōŏŌ]/g,'o').replace(/[ūŭŪ]/g,'u').replace(/[ȳŷȲ]/g,'y'); }
+function normalize(s, macrons){ let t=String(s).toLowerCase().trim().replace(/[.,…]+$/,'').replace(/\s+/g,' '); if(!macrons) t=stripMacrons(t); return t; }
+function checkAnswer(input, correct, macrons){
+  const u=normalize(input,macrons), c=normalize(correct,macrons);
+  if(u===c) return true;
+  return u.split(' ').sort().join(' ')===c.split(' ').sort().join(' '); // order-flexible (abl abs)
+}
+
+
+/* ================================================================
+   LATIN MORPHOLOGY ENGINE v3  (extends v2)
+   Adds: full adjective declension (212 + 3rd), comparison of
+   adjectives & adverbs, adverb formation, pronoun declension,
+   non-finite verb forms (infinitives, participles, imperatives,
+   gerund, supine), perfect-system passive (periphrastic).
+   ================================================================ */
+/* shared small helpers (re-derived, tested below) */
+function vroot(v){ return {'1':v.inf.replace(/āre$/,''),'2':v.inf.replace(/ēre$/,''),
+  '3':v.inf.replace(/ere$/,''),'3io':v.inf.replace(/ere$/,''),'4':v.inf.replace(/īre$/,'')}[v.conj]; }
+function perfStem(v){ return v.perf.replace(/ī$/,''); }
+function pppStem(v){ return v.ppp ? v.ppp.replace(/us$/,'') : null; }
+const GENDERS=['m','f','n'];
+
+/* ================================================================
+   ADJECTIVES — full declension
+   212 type declines: m like 2m (servus), f like 1 (puella), n like 2n (bellum)
+   3rd-decl 2-termination (fortis,-e): i-stem adjective endings
+   ================================================================ */
+// 212 endings by gender (Nom Gen Dat Acc Abl Voc) sg / pl
+const ADJ212 = {
+  m:{sg:['us','ī','ō','um','ō','e'], pl:['ī','ōrum','īs','ōs','īs','ī']},
+  f:{sg:['a','ae','ae','am','ā','a'], pl:['ae','ārum','īs','ās','īs','ae']},
+  n:{sg:['um','ī','ō','um','ō','um'], pl:['a','ōrum','īs','a','īs','a']},
+};
+// -er 212 adjectives (miser miser-,-a-um / pulcher pulchr-): nom m sg special
+// 3rd declension i-stem adjective endings (2-termination fortis/forte)
+const ADJ3 = {
+  m:{sg:['is','is','ī','em','ī','is'], pl:['ēs','ium','ibus','ēs','ibus','ēs']},
+  f:{sg:['is','is','ī','em','ī','is'], pl:['ēs','ium','ibus','ēs','ibus','ēs']},
+  n:{sg:['e','is','ī','e','ī','e'],   pl:['ia','ium','ibus','ia','ibus','ia']},
+};
+function adjForm(a, gender, c, num){
+  const ci=CASES.indexOf(c);
+  if(a.type==='212' || !a.type){
+    // -er adjectives: nom/voc masc sg = the listed nominative; else use stem
+    if((c==='Nom'||c==='Voc') && num==='sg' && gender==='m' && a.erNom) return a.erNom;
+    const t=ADJ212[gender];
+    return a.stem + (num==='pl'?t.pl[ci]:t.sg[ci]);
+  } else { // 3rd decl
+    const t=ADJ3[gender];
+    if((c==='Nom'||c==='Voc') && num==='sg'){
+      if(gender==='n') return a.nNom || (a.stem+'e');
+      return a.nom; // listed masc/fem nominative (fortis, ingēns)
+    }
+    return a.stem + (num==='pl'?t.pl[ci]:t.sg[ci]);
+  }
+}
+
+/* ================================================================
+   COMPARISON of adjectives
+   comparative: stem + ior (m/f) / ius (n); 3rd-decl CONSONANT decl
+   superlative: stem + issimus (-errimus for -er, -limus for -lis set)
+   ================================================================ */
+const LIMUS_SET = ['facilis','difficilis','similis','dissimilis','gracilis','humilis'];
+const IRREG_CMP = {
+  bonus:{cmp:'melior',sup:'optimus'}, malus:{cmp:'peior',sup:'pessimus'},
+  magnus:{cmp:'maior',sup:'maximus'}, parvus:{cmp:'minor',sup:'minimus'},
+  multus:{cmp:'plūs',sup:'plūrimus'},
+};
+function comparativeNomMF(a){ if(IRREG_CMP[a.id]) return IRREG_CMP[a.id].cmp; return a.stem+'ior'; }
+function comparativeNomN(a){ if(IRREG_CMP[a.id]) return IRREG_CMP[a.id].cmp.replace(/ior$/,'ius'); return a.stem+'ius'; }
+function superlativeNom(a){
+  if(IRREG_CMP[a.id]) return IRREG_CMP[a.id].sup;
+  if(a.erNom || /er$/.test(a.nom)) return (a.erNom?a.erNom:a.nom)+'rimus'.replace(/^/,'') ; // handled below
+  if(LIMUS_SET.includes(a.id)) return a.stem+'limus';
+  return a.stem+'issimus';
+}
+// cleaner superlative: -er -> stem of NOM (pulcher->pulcherrimus, miser->miserrimus)
+function superlative(a){
+  if(IRREG_CMP[a.id]) return IRREG_CMP[a.id].sup;
+  if(LIMUS_SET.includes(a.id)) return a.stem+'limus';
+  if(a.erNom) return a.erNom+'rimus';      // pulcher -> pulcherrimus
+  if(/er$/.test(a.nom)) return a.nom+'rimus'; // miser -> miserrimus
+  return a.stem+'issimus';
+}
+
+/* ================================================================
+   ADVERBS
+   212 -> stem + ē (longē); 3rd -> stem + iter (fortiter), -nt stems -> -er
+   comparative adverb = neuter comparative (-ius); superlative = sup stem + ē
+   ================================================================ */
+const IRREG_ADV = {
+  bonus:{pos:'bene',cmp:'melius',sup:'optimē'}, malus:{pos:'male',cmp:'peius',sup:'pessimē'},
+  magnus:{pos:'magnopere',cmp:'magis',sup:'maximē'}, multus:{pos:'multum',cmp:'plūs',sup:'plūrimum'},
+};
+function adverbPositive(a){
+  if(IRREG_ADV[a.id]) return IRREG_ADV[a.id].pos;
+  if(a.type==='3'){ if(/nt$/.test(a.stem)) return a.stem+'er'; return a.stem+'iter'; }
+  return a.stem+'ē';
+}
+function adverbComparative(a){ if(IRREG_ADV[a.id]) return IRREG_ADV[a.id].cmp; return a.stem+'ius'; }
+function adverbSuperlative(a){ if(IRREG_ADV[a.id]) return IRREG_ADV[a.id].sup; return superlative(a).replace(/us$/,'ē'); }
+
+/* ================================================================
+   PRONOUNS — explicit irregular tables [Nom,Gen,Dat,Acc,Abl] per gender
+   ================================================================ */
+const PRONOUNS = {
+  is:{ name:'is, ea, id', gloss:'he/she/it; this/that',
+    m:{sg:['is','eius','eī','eum','eō'], pl:['eī','eōrum','eīs','eōs','eīs']},
+    f:{sg:['ea','eius','eī','eam','eā'], pl:['eae','eārum','eīs','eās','eīs']},
+    n:{sg:['id','eius','eī','id','eō'],  pl:['ea','eōrum','eīs','ea','eīs']}},
+  hic:{ name:'hic, haec, hoc', gloss:'this',
+    m:{sg:['hic','huius','huic','hunc','hōc'], pl:['hī','hōrum','hīs','hōs','hīs']},
+    f:{sg:['haec','huius','huic','hanc','hāc'], pl:['hae','hārum','hīs','hās','hīs']},
+    n:{sg:['hoc','huius','huic','hoc','hōc'],  pl:['haec','hōrum','hīs','haec','hīs']}},
+  ille:{ name:'ille, illa, illud', gloss:'that',
+    m:{sg:['ille','illīus','illī','illum','illō'], pl:['illī','illōrum','illīs','illōs','illīs']},
+    f:{sg:['illa','illīus','illī','illam','illā'], pl:['illae','illārum','illīs','illās','illīs']},
+    n:{sg:['illud','illīus','illī','illud','illō'],pl:['illa','illōrum','illīs','illa','illīs']}},
+  qui:{ name:'quī, quae, quod', gloss:'who/which (rel.)',
+    m:{sg:['quī','cuius','cui','quem','quō'], pl:['quī','quōrum','quibus','quōs','quibus']},
+    f:{sg:['quae','cuius','cui','quam','quā'], pl:['quae','quārum','quibus','quās','quibus']},
+    n:{sg:['quod','cuius','cui','quod','quō'],pl:['quae','quōrum','quibus','quae','quibus']}},
+  ipse:{ name:'ipse, ipsa, ipsum', gloss:'-self',
+    m:{sg:['ipse','ipsīus','ipsī','ipsum','ipsō'], pl:['ipsī','ipsōrum','ipsīs','ipsōs','ipsīs']},
+    f:{sg:['ipsa','ipsīus','ipsī','ipsam','ipsā'], pl:['ipsae','ipsārum','ipsīs','ipsās','ipsīs']},
+    n:{sg:['ipsum','ipsīus','ipsī','ipsum','ipsō'],pl:['ipsa','ipsōrum','ipsīs','ipsa','ipsīs']}},
+};
+const PRON_CASES=['Nom','Gen','Dat','Acc','Abl'];
+function pronForm(key, gender, c, num){ const ci=PRON_CASES.indexOf(c); if(ci<0) return null;
+  const t=PRONOUNS[key][gender]; return num==='pl'?t.pl[ci]:t.sg[ci]; }
+
+/* ================================================================
+   NON-FINITE VERB FORMS
+   ================================================================ */
+function presActInf(v){ return v.inf; }
+function presPassInf(v){
+  if(v.conj==='3'||v.conj==='3io') return vroot(v)+ (v.conj==='3io'?'ī':'ī'); // regī, capī
+  return v.inf.replace(/e$/,'ī'); // amārī, monērī, audīrī
+}
+function perfActInf(v){ return perfStem(v)+'isse'; }
+function perfPassInf(v){ return v.ppp ? pppStem(v)+'us esse' : null; }
+function futActInf(v){ return v.ppp ? pppStem(v)+'ūrus esse' : null; }
+
+function presActPart(v){ // nominative m/f sg (3rd decl): amāns
+  return ({'1':vroot(v)+'āns','2':vroot(v)+'ēns','3':vroot(v)+'ēns','3io':vroot(v)+'iēns','4':vroot(v)+'iēns'})[v.conj];
+}
+function presActPartStem(v){ return presActPart(v).replace(/ns$/,'nt'); } // amant-
+function perfPassPart(v){ return v.ppp; }              // amātus
+function futActPart(v){ return v.ppp ? pppStem(v)+'ūrus' : null; } // amātūrus
+function gerundive(v){ // future passive participle, -ndus
+  return ({'1':vroot(v)+'andus','2':vroot(v)+'endus','3':vroot(v)+'endus','3io':vroot(v)+'iendus','4':vroot(v)+'iendus'})[v.conj];
+}
+function gerundStem(v){ return gerundive(v).replace(/us$/,''); } // amand-
+function gerund(v, c){ // 2nd-decl neuter; gen/dat/acc/abl sg
+  const s=gerundStem(v);
+  return {Gen:s+'ī', Dat:s+'ō', Acc:s+'um', Abl:s+'ō'}[c];
+}
+function supine(v, c){ if(!v.ppp) return null; const s=pppStem(v);
+  return c==='Acc'? s+'um' : s+'ū'; }
+
+function imperative(v, number){
+  if(v.id==='dico') return number==='pl'?'dīcite':'dīc';
+  if(v.id==='duco') return number==='pl'?'dūcite':'dūc';
+  if(v.id==='facio') return number==='pl'?'facite':'fac';
+  if(v.irregular){
+    const t={sum:['es','este'],eo:['ī','īte'],possum:[null,null]}[v.irregular];
+    return t ? (number==='pl'?t[1]:t[0]) : null;
+  }
+  const r=vroot(v);
+  const sg={'1':r+'ā','2':r+'ē','3':r+'e','3io':r+'e','4':r+'ī'}[v.conj];
+  const pl={'1':r+'āte','2':r+'ēte','3':r+'ite','3io':r+'ite','4':r+'īte'}[v.conj];
+  return number==='pl'?pl:sg;
+}
+
+/* perfect-system PASSIVE indicative & subjunctive (periphrastic, masc default) */
+const AUX = {
+  indicative:{ perfect:['sum','es','est','sumus','estis','sunt'],
+    pluperfect:['eram','erās','erat','erāmus','erātis','erant'],
+    futureperfect:['erō','eris','erit','erimus','eritis','erunt'] },
+  subjunctive:{ perfect:['sim','sīs','sit','sīmus','sītis','sint'],
+    pluperfect:['essem','essēs','esset','essēmus','essētis','essent'] },
+};
+function perfPassive(v, mood, tense, person, number, gender='m'){
+  if(!v.ppp) return null;
+  const aux=(AUX[mood]||{})[tense]; if(!aux) return null;
+  const idx={1:0,2:1,3:2}[person]+(number==='pl'?3:0);
+  // participle agrees: m sg -us, f -a, n -um; pl m -ī f -ae n -a
+  const s=pppStem(v); let part;
+  if(number==='pl') part = gender==='f'?s+'ae':gender==='n'?s+'a':s+'ī';
+  else part = gender==='f'?s+'a':gender==='n'?s+'um':s+'us';
+  return `${part} ${aux[idx]}`;
+}
+
+
+/* ================================================================
+   WORD BANK EXTRAS + SOURCE TAGGING + IMPORT PARSER
+   ================================================================ */
+
+/* Adjectives: type 212 / 3 ; erNom for -er types; nNom for 1-term 3rd */
+const ADJ_BANK = [
+  // 212 regular
+  {id:'longus',nom:'longus',stem:'long',type:'212',gloss:'long'},
+  {id:'altus',nom:'altus',stem:'alt',type:'212',gloss:'high, deep'},
+  {id:'novus',nom:'novus',stem:'nov',type:'212',gloss:'new'},
+  {id:'clarus',nom:'clārus',stem:'clār',type:'212',gloss:'clear, famous'},
+  {id:'laetus',nom:'laetus',stem:'laet',type:'212',gloss:'happy'},
+  {id:'latus',nom:'lātus',stem:'lāt',type:'212',gloss:'wide'},
+  {id:'notus',nom:'nōtus',stem:'nōt',type:'212',gloss:'known'},
+  {id:'plenus',nom:'plēnus',stem:'plēn',type:'212',gloss:'full'},
+  {id:'iratus',nom:'īrātus',stem:'īrāt',type:'212',gloss:'angry'},
+  {id:'durus',nom:'dūrus',stem:'dūr',type:'212',gloss:'hard'},
+  // 212 irregular comparison
+  {id:'bonus',nom:'bonus',stem:'bon',type:'212',gloss:'good'},
+  {id:'malus',nom:'malus',stem:'mal',type:'212',gloss:'bad'},
+  {id:'magnus',nom:'magnus',stem:'magn',type:'212',gloss:'big'},
+  {id:'parvus',nom:'parvus',stem:'parv',type:'212',gloss:'small'},
+  {id:'multus',nom:'multus',stem:'mult',type:'212',gloss:'much, many'},
+  // -er types
+  {id:'pulcher',nom:'pulcher',erNom:'pulcher',stem:'pulchr',type:'212',gloss:'beautiful'},
+  {id:'miser',nom:'miser',erNom:'miser',stem:'miser',type:'212',gloss:'wretched'},
+  {id:'liber',nom:'līber',erNom:'līber',stem:'līber',type:'212',gloss:'free'},
+  // 3rd declension, 2-termination
+  {id:'fortis',nom:'fortis',stem:'fort',type:'3',gloss:'brave, strong'},
+  {id:'omnis',nom:'omnis',stem:'omn',type:'3',gloss:'all, every'},
+  {id:'gravis',nom:'gravis',stem:'grav',type:'3',gloss:'heavy, serious'},
+  {id:'brevis',nom:'brevis',stem:'brev',type:'3',gloss:'short'},
+  {id:'facilis',nom:'facilis',stem:'facil',type:'3',gloss:'easy'},
+  {id:'difficilis',nom:'difficilis',stem:'difficil',type:'3',gloss:'difficult'},
+  {id:'similis',nom:'similis',stem:'simil',type:'3',gloss:'similar'},
+  {id:'tristis',nom:'trīstis',stem:'trīst',type:'3',gloss:'sad'},
+  // 3rd declension, 1-termination (explicit stem + nNom)
+  {id:'ingens',nom:'ingēns',nNom:'ingēns',stem:'ingent',type:'3',gloss:'huge'},
+  {id:'audax',nom:'audāx',nNom:'audāx',stem:'audāc',type:'3',gloss:'bold'},
+  {id:'felix',nom:'fēlīx',nNom:'fēlīx',stem:'fēlīc',type:'3',gloss:'lucky, happy'},
+];
+
+const PRONOUN_KEYS = ['is','hic','ille','ipse','qui'];
+
+/* tag every built-in word as core source */
+function tagCore(arr){ arr.forEach(w=>{ if(!w.source){ w.source='core'; w.chapter=null; } }); return arr; }
+
+/* ---- IMPORT PARSER ----
+   Accepts lines a student copies from their own Suburani notes, e.g.:
+     amō, amāre, amāvī, amātus = to love
+     puella, puellae, f. = girl
+     bonus, -a, -um = good
+   Returns {type, entry} or {error}. Auto-classifies noun/verb/adjective.
+*/
+function classifyImport(line){
+  const raw=line.trim(); if(!raw) return null;
+  const m=raw.split(/\s*[=\u2013\u2014:]\s*|\s+-\s+/); // split on = : – — or " - "
+  const head=m[0].trim();
+  const gloss=(m.slice(1).join(' ')||'').replace(/^to\s+/,'').trim() || head;
+  const parts=head.split(/\s*,\s*/);
+  const maced=s=>s; // keep as typed (student supplies macrons)
+
+  // ADJECTIVE: "bonus, -a, -um" or "fortis, -e" or "fortis, forte"
+  if(parts.length>=2 && /(^-?a$|^-a,?|-a$|^-?e$|-e$|^-?is$)/.test(parts[1]) ){
+    const nom=parts[0];
+    if(/-a$|^a$/.test(parts[1]) || /us$/.test(nom)){ // 212
+      let stem=nom.replace(/(us|er)$/,''); let erNom=null;
+      if(/er$/.test(nom)){ erNom=nom; stem=nom.replace(/er$/,/b+er$/.test(nom)?'er':'r'); stem=nom.endsWith('er')?nom.slice(0,-2)+ (/(bre|che|ge|se|te)r$/.test(nom)?'r':'er').replace('er',''):stem; }
+      return {type:'adj', entry:{id:nom, nom, stem:nom.replace(/us$/,'').replace(/er$/, erNom?'':''), erNom, type:'212', gloss, source:'import'}};
+    }
+    // 3rd-decl 2-termination
+    const stem=nom.replace(/is$/,'');
+    return {type:'adj', entry:{id:nom, nom, stem, type:'3', gloss, source:'import'}};
+  }
+
+  // VERB: 3-4 principal parts, first ends in -ō / -or
+  if(parts.length>=2 && /(ō|or)$/.test(parts[0])){
+    const [p1,inf,perf,ppp]=parts;
+    let conj='1';
+    if(/āre$/.test(inf)) conj='1';
+    else if(/ēre$/.test(inf)) conj='2';
+    else if(/īre$/.test(inf)) conj='4';
+    else if(/ere$/.test(inf)) conj=/iō$/.test(p1)?'3io':'3';
+    const eng=(()=>{ const g=gloss.replace(/^to\s+/,''); return null; })();
+    return {type:'verb', entry:{id:p1, p1, inf, perf:perf||p1, ppp:ppp||null, conj, gloss, source:'import'}};
+  }
+
+  // NOUN: "puella, puellae, f."  → decl from genitive ending + gender letter
+  if(parts.length>=2){
+    const nom=parts[0], gen=parts[1]||''; let gender='m';
+    const gm=raw.match(/\b([mfn])\.?\b/); if(gm) gender=gm[1];
+    let decl='3', stem=gen;
+    if(/ae$/.test(gen)) {decl='1'; stem=gen.replace(/ae$/,'');}
+    else if(/(eī|ēī)$/.test(gen)) {decl='5'; stem=gen.replace(/(eī|ēī)$/,'');}
+    else if(/ūs$/.test(gen)) {decl=(gender==='n')?'4n':'4'; stem=gen.replace(/ūs$/,'');}
+    else if(/ī$/.test(gen)) {decl=(gender==='n')?'2n':(/er$/.test(nom)?'2r':'2m'); stem=gen.replace(/ī$/,'');}
+    else if(/is$/.test(gen)) {decl=(gender==='n')?'3n':'3'; stem=gen.replace(/is$/,'');}
+    return {type:'noun', entry:{id:nom, nom, stem, decl, gender, gloss, source:'import',
+      eng:{sg:gloss, pl:gloss+'s'}}};
+  }
+  return {error:`Could not parse: "${raw}"`};
+}
+
+
+/* ================================================================
+   SUBURANI VOCABULARY  (Book 1: ch 1-16, Book 2: ch 17-32)
+   Glosses & chapter assignments taken from the textbook's
+   "Vocabulary for Learning" lists. Principal parts / genitives
+   supplied to the standard dictionary forms so the engine can
+   inflect; teaching-simplified textbook citations are preserved
+   in `dict` where useful.
+   Each entry: book + chapter + part-of-speech data + gloss.
+   ================================================================ */
+const SUB = [];
+function N(o){ o.pos='noun'; SUB.push(o); }
+function V(o){ o.pos='verb'; SUB.push(o); }
+function A(o){ o.pos='adj'; SUB.push(o); }
+function W(o){ o.pos='indeclinable'; SUB.push(o); } // particles/adverbs/preps: vocab-only, not drilled for forms
+
+/* ---------------- BOOK 1 ---------------- */
+/* Chapter 1 */
+V({ch:1,book:1,id:'dormio',p1:'dormiō',inf:'dormīre',perf:'dormīvī',ppp:'dormītus',conj:'4',gloss:'sleep',eng:{ing:'sleeping',pp:'slept'}});
+W({ch:1,book:1,id:'ego',nom:'ego',gloss:'I'});
+N({ch:1,book:1,id:'frater',nom:'frāter',stem:'frātr',decl:'3',gender:'m',gloss:'brother',eng:{sg:'brother',pl:'brothers'}});
+N({ch:1,book:1,id:'hora',nom:'hōra',stem:'hōr',decl:'1',gender:'f',gloss:'hour',eng:{sg:'hour',pl:'hours'}});
+W({ch:1,book:1,id:'in_prep',nom:'in',gloss:'in, on (+abl.)'});
+V({ch:1,book:1,id:'laboro',p1:'labōrō',inf:'labōrāre',perf:'labōrāvī',ppp:'labōrātus',conj:'1',gloss:'work',eng:{ing:'working',pp:'worked'}});
+V({ch:1,book:1,id:'lego',p1:'legō',inf:'legere',perf:'lēgī',ppp:'lēctus',conj:'3',gloss:'read',eng:{ing:'reading',pp:'read'}});
+A({ch:1,book:1,id:'meus',nom:'meus',stem:'me',type:'212',gloss:'my'});
+W({ch:1,book:1,id:'non',nom:'nōn',gloss:'not'});
+N({ch:1,book:1,id:'pater',nom:'pater',stem:'patr',decl:'3',gender:'m',gloss:'father',eng:{sg:'father',pl:'fathers'}});
+V({ch:1,book:1,id:'rideo',p1:'rīdeō',inf:'rīdēre',perf:'rīsī',ppp:'rīsus',conj:'2',gloss:'laugh, smile',eng:{ing:'laughing',pp:'laughed'}});
+N({ch:1,book:1,id:'servus',nom:'servus',stem:'serv',decl:'2m',gender:'m',gloss:'slave, enslaved person (male)',eng:{sg:'slave',pl:'slaves'}});
+W({ch:1,book:1,id:'tu',nom:'tū',gloss:'you (singular)'});
+N({ch:1,book:1,id:'turba',nom:'turba',stem:'turb',decl:'1',gender:'f',gloss:'crowd',eng:{sg:'crowd',pl:'crowds'}});
+W({ch:1,book:1,id:'ubi_q',nom:'ubi?',gloss:'where?'});
+N({ch:1,book:1,id:'via',nom:'via',stem:'vi',decl:'1',gender:'f',gloss:'street, road, way',eng:{sg:'road',pl:'roads'}});
+V({ch:1,book:1,id:'sum',p1:'sum',inf:'esse',perf:'fuī',ppp:'futūrus',conj:'irr',irregular:'sum',gloss:'be'});
+
+/* Chapter 2 */
+V({ch:2,book:1,id:'cado',p1:'cadō',inf:'cadere',perf:'cecidī',ppp:'cāsus',conj:'3',gloss:'fall',eng:{ing:'falling',pp:'fallen'}});
+N({ch:2,book:1,id:'cibus',nom:'cibus',stem:'cib',decl:'2m',gender:'m',gloss:'food',eng:{sg:'food',pl:'foods'}});
+V({ch:2,book:1,id:'duco',p1:'dūcō',inf:'dūcere',perf:'dūxī',ppp:'ductus',conj:'3',gloss:'lead, take',eng:{ing:'leading',pp:'led'}});
+W({ch:2,book:1,id:'et',nom:'et',gloss:'and'});
+N({ch:2,book:1,id:'filia',nom:'fīlia',stem:'fīli',decl:'1',gender:'f',gloss:'daughter',eng:{sg:'daughter',pl:'daughters'}});
+N({ch:2,book:1,id:'filius',nom:'fīlius',stem:'fīli',decl:'2m',gender:'m',gloss:'son',eng:{sg:'son',pl:'sons'}});
+N({ch:2,book:1,id:'forum',nom:'forum',stem:'for',decl:'2n',gender:'n',gloss:'forum, marketplace',eng:{sg:'forum',pl:'forums'}});
+V({ch:2,book:1,id:'habeo',p1:'habeō',inf:'habēre',perf:'habuī',ppp:'habitus',conj:'2',gloss:'have, hold',eng:{ing:'having',pp:'had'}});
+V({ch:2,book:1,id:'habito',p1:'habitō',inf:'habitāre',perf:'habitāvī',ppp:'habitātus',conj:'1',gloss:'live',eng:{ing:'living',pp:'lived'}});
+V({ch:2,book:1,id:'intro',p1:'intrō',inf:'intrāre',perf:'intrāvī',ppp:'intrātus',conj:'1',gloss:'enter',eng:{ing:'entering',pp:'entered'}});
+A({ch:2,book:1,id:'magnus',nom:'magnus',stem:'magn',type:'212',gloss:'big, large, great'});
+N({ch:2,book:1,id:'pecunia',nom:'pecūnia',stem:'pecūni',decl:'1',gender:'f',gloss:'money',eng:{sg:'money',pl:'sums of money'}});
+V({ch:2,book:1,id:'quaero',p1:'quaerō',inf:'quaerere',perf:'quaesīvī',ppp:'quaesītus',conj:'3',gloss:'search for, ask',eng:{ing:'searching',pp:'sought'}});
+W({ch:2,book:1,id:'quoque',nom:'quoque',gloss:'also, too'});
+V({ch:2,book:1,id:'saluto',p1:'salūtō',inf:'salūtāre',perf:'salūtāvī',ppp:'salūtātus',conj:'1',gloss:'greet',eng:{ing:'greeting',pp:'greeted'}});
+W({ch:2,book:1,id:'sed',nom:'sed',gloss:'but'});
+V({ch:2,book:1,id:'specto',p1:'spectō',inf:'spectāre',perf:'spectāvī',ppp:'spectātus',conj:'1',gloss:'look at, watch',eng:{ing:'watching',pp:'watched'}});
+V({ch:2,book:1,id:'video',p1:'videō',inf:'vidēre',perf:'vīdī',ppp:'vīsus',conj:'2',gloss:'see',eng:{ing:'seeing',pp:'seen'}});
+N({ch:2,book:1,id:'vinum',nom:'vīnum',stem:'vīn',decl:'2n',gender:'n',gloss:'wine',eng:{sg:'wine',pl:'wines'}});
+V({ch:2,book:1,id:'voco',p1:'vocō',inf:'vocāre',perf:'vocāvī',ppp:'vocātus',conj:'1',gloss:'call',eng:{ing:'calling',pp:'called'}});
+
+/* Chapter 3 */
+V({ch:3,book:1,id:'ambulo',p1:'ambulō',inf:'ambulāre',perf:'ambulāvī',ppp:'ambulātus',conj:'1',gloss:'walk',eng:{ing:'walking',pp:'walked'}});
+N({ch:3,book:1,id:'amicus',nom:'amīcus',stem:'amīc',decl:'2m',gender:'m',gloss:'friend',eng:{sg:'friend',pl:'friends'}});
+N({ch:3,book:1,id:'ancilla',nom:'ancilla',stem:'ancill',decl:'1',gender:'f',gloss:'slave, enslaved person (female)',eng:{sg:'slave-woman',pl:'slave-women'}});
+V({ch:3,book:1,id:'clamo',p1:'clāmō',inf:'clāmāre',perf:'clāmāvī',ppp:'clāmātus',conj:'1',gloss:'shout',eng:{ing:'shouting',pp:'shouted'}});
+N({ch:3,book:1,id:'clamor',nom:'clāmor',stem:'clāmōr',decl:'3',gender:'m',gloss:'shout, shouting, noise',eng:{sg:'shout',pl:'shouts'}});
+W({ch:3,book:1,id:'cum_prep',nom:'cum',gloss:'with (+abl.)'});
+V({ch:3,book:1,id:'curro',p1:'currō',inf:'currere',perf:'cucurrī',ppp:'cursus',conj:'3',gloss:'run',eng:{ing:'running',pp:'run'}});
+V({ch:3,book:1,id:'dico',p1:'dīcō',inf:'dīcere',perf:'dīxī',ppp:'dictus',conj:'3',gloss:'say, speak, tell',eng:{ing:'speaking',pp:'spoken'}});
+N({ch:3,book:1,id:'equus',nom:'equus',stem:'equ',decl:'2m',gender:'m',gloss:'horse',eng:{sg:'horse',pl:'horses'}});
+V({ch:3,book:1,id:'festino',p1:'festīnō',inf:'festīnāre',perf:'festīnāvī',ppp:'festīnātus',conj:'1',gloss:'hurry',eng:{ing:'hurrying',pp:'hurried'}});
+N({ch:3,book:1,id:'gladius',nom:'gladius',stem:'gladi',decl:'2m',gender:'m',gloss:'sword',eng:{sg:'sword',pl:'swords'}});
+A({ch:3,book:1,id:'infelix',nom:'īnfēlīx',nNom:'īnfēlīx',stem:'īnfēlīc',type:'3',gloss:'unlucky, unhappy'});
+A({ch:3,book:1,id:'laetus',nom:'laetus',stem:'laet',type:'212',gloss:'happy'});
+A({ch:3,book:1,id:'multus',nom:'multus',stem:'mult',type:'212',gloss:'much, many'});
+A({ch:3,book:1,id:'omnis',nom:'omnis',stem:'omn',type:'3',gloss:'all, every'});
+W({ch:3,book:1,id:'per_prep',nom:'per',gloss:'through, along (+acc.)'});
+A({ch:3,book:1,id:'primus',nom:'prīmus',stem:'prīm',type:'212',gloss:'first'});
+N({ch:3,book:1,id:'senator',nom:'senātor',stem:'senātōr',decl:'3',gender:'m',gloss:'senator',eng:{sg:'senator',pl:'senators'}});
+N({ch:3,book:1,id:'urbs',nom:'urbs',stem:'urb',decl:'3i',gender:'f',gloss:'city',eng:{sg:'city',pl:'cities'}});
+V({ch:3,book:1,id:'vinco',p1:'vincō',inf:'vincere',perf:'vīcī',ppp:'victus',conj:'3',gloss:'conquer, win',eng:{ing:'conquering',pp:'conquered'}});
+
+/* Chapter 4 */
+W({ch:4,book:1,id:'ad_prep',nom:'ad',gloss:'to, towards; at (+acc.)'});
+V({ch:4,book:1,id:'adsum',p1:'adsum',inf:'adesse',perf:'adfuī',ppp:null,conj:'irr',irregular:'sum',gloss:'be here, be present'});
+N({ch:4,book:1,id:'deus',nom:'deus',stem:'de',decl:'2m',gender:'m',gloss:'god',eng:{sg:'god',pl:'gods'}});
+N({ch:4,book:1,id:'dominus',nom:'dominus',stem:'domin',decl:'2m',gender:'m',gloss:'master',eng:{sg:'master',pl:'masters'}});
+N({ch:4,book:1,id:'donum',nom:'dōnum',stem:'dōn',decl:'2n',gender:'n',gloss:'gift, present',eng:{sg:'gift',pl:'gifts'}});
+V({ch:4,book:1,id:'laudo',p1:'laudō',inf:'laudāre',perf:'laudāvī',ppp:'laudātus',conj:'1',gloss:'praise',eng:{ing:'praising',pp:'praised'}});
+W({ch:4,book:1,id:'nos',nom:'nōs',gloss:'we, us'});
+A({ch:4,book:1,id:'parvus',nom:'parvus',stem:'parv',type:'212',gloss:'small'});
+N({ch:4,book:1,id:'periculum',nom:'perīculum',stem:'perīcul',decl:'2n',gender:'n',gloss:'danger',eng:{sg:'danger',pl:'dangers'}});
+A({ch:4,book:1,id:'perterritus',nom:'perterritus',stem:'perterrit',type:'212',gloss:'terrified'});
+N({ch:4,book:1,id:'puella',nom:'puella',stem:'puell',decl:'1',gender:'f',gloss:'girl',eng:{sg:'girl',pl:'girls'}});
+W({ch:4,book:1,id:'quod',nom:'quod',gloss:'because'});
+N({ch:4,book:1,id:'rex',nom:'rēx',stem:'rēg',decl:'3',gender:'m',gloss:'king',eng:{sg:'king',pl:'kings'}});
+A({ch:4,book:1,id:'romanus',nom:'Rōmānus',stem:'Rōmān',type:'212',gloss:'Roman'});
+W({ch:4,book:1,id:'subito',nom:'subitō',gloss:'suddenly'});
+N({ch:4,book:1,id:'templum',nom:'templum',stem:'templ',decl:'2n',gender:'n',gloss:'temple',eng:{sg:'temple',pl:'temples'}});
+V({ch:4,book:1,id:'teneo',p1:'teneō',inf:'tenēre',perf:'tenuī',ppp:'tentus',conj:'2',gloss:'hold, keep, possess',eng:{ing:'holding',pp:'held'}});
+V({ch:4,book:1,id:'tollo',p1:'tollō',inf:'tollere',perf:'sustulī',ppp:'sublātus',conj:'3',gloss:'raise, lift up',eng:{ing:'raising',pp:'raised'}});
+V({ch:4,book:1,id:'venio',p1:'veniō',inf:'venīre',perf:'vēnī',ppp:'ventus',conj:'4',gloss:'come',eng:{ing:'coming',pp:'come'}});
+W({ch:4,book:1,id:'vos',nom:'vōs',gloss:'you (plural)'});
+
+/* Chapter 5 */
+N({ch:5,book:1,id:'aqua',nom:'aqua',stem:'aqu',decl:'1',gender:'f',gloss:'water',eng:{sg:'water',pl:'waters'}});
+V({ch:5,book:1,id:'audio',p1:'audiō',inf:'audīre',perf:'audīvī',ppp:'audītus',conj:'4',gloss:'hear, listen to',eng:{ing:'hearing',pp:'heard'}});
+V({ch:5,book:1,id:'cupio',p1:'cupiō',inf:'cupere',perf:'cupīvī',ppp:'cupītus',conj:'3io',gloss:'want, desire',eng:{ing:'desiring',pp:'desired'}});
+N({ch:5,book:1,id:'custos',nom:'custōs',stem:'custōd',decl:'3',gender:'m',gloss:'guard',eng:{sg:'guard',pl:'guards'}});
+V({ch:5,book:1,id:'debeo',p1:'dēbeō',inf:'dēbēre',perf:'dēbuī',ppp:'dēbitus',conj:'2',gloss:'owe; ought',eng:{ing:'owing',pp:'owed'}});
+V({ch:5,book:1,id:'do',p1:'dō',inf:'dare',perf:'dedī',ppp:'datus',conj:'1',gloss:'give',eng:{ing:'giving',pp:'given'}});
+V({ch:5,book:1,id:'effugio',p1:'effugiō',inf:'effugere',perf:'effūgī',ppp:null,conj:'3io',gloss:'escape',eng:{ing:'escaping',pp:'escaped'}});
+N({ch:5,book:1,id:'iuvenis',nom:'iuvenis',stem:'iuven',decl:'3i',gender:'m',gloss:'young person',eng:{sg:'young man',pl:'young men'}});
+V({ch:5,book:1,id:'maneo',p1:'maneō',inf:'manēre',perf:'mānsī',ppp:'mānsus',conj:'2',gloss:'remain, stay',eng:{ing:'remaining',pp:'remained'}});
+N({ch:5,book:1,id:'nemo',nom:'nēmō',stem:'nēmin',decl:'3',gender:'m',gloss:'no one, nobody'});
+V({ch:5,book:1,id:'nolo',p1:'nōlō',inf:'nōlle',perf:'nōluī',ppp:null,conj:'irr',irregular:'nolo',gloss:'don\u2019t want, refuse'});
+N({ch:5,book:1,id:'nox',nom:'nox',stem:'noct',decl:'3i',gender:'f',gloss:'night',eng:{sg:'night',pl:'nights'}});
+V({ch:5,book:1,id:'porto',p1:'portō',inf:'portāre',perf:'portāvī',ppp:'portātus',conj:'1',gloss:'carry, bear, take',eng:{ing:'carrying',pp:'carried'}});
+V({ch:5,book:1,id:'possum',p1:'possum',inf:'posse',perf:'potuī',ppp:null,conj:'irr',irregular:'possum',gloss:'can, am able'});
+A({ch:5,book:1,id:'pulcher',nom:'pulcher',erNom:'pulcher',stem:'pulchr',type:'212',gloss:'beautiful, handsome'});
+V({ch:5,book:1,id:'respondeo',p1:'respondeō',inf:'respondēre',perf:'respondī',ppp:'respōnsus',conj:'2',gloss:'reply',eng:{ing:'replying',pp:'replied'}});
+V({ch:5,book:1,id:'taceo',p1:'taceō',inf:'tacēre',perf:'tacuī',ppp:'tacitus',conj:'2',gloss:'am silent',eng:{ing:'being silent',pp:'been silent'}});
+V({ch:5,book:1,id:'timeo',p1:'timeō',inf:'timēre',perf:'timuī',ppp:null,conj:'2',gloss:'fear, am afraid',eng:{ing:'fearing',pp:'feared'}});
+V({ch:5,book:1,id:'vendo',p1:'vēndō',inf:'vēndere',perf:'vēndidī',ppp:'vēnditus',conj:'3',gloss:'sell',eng:{ing:'selling',pp:'sold'}});
+V({ch:5,book:1,id:'volo',p1:'volō',inf:'velle',perf:'voluī',ppp:null,conj:'irr',irregular:'volo',gloss:'want, wish, am willing'});
+
+/* Chapter 6 */
+W({ch:6,book:1,id:'a_prep',nom:'ā/ab',gloss:'from, away from (+abl.)'});
+V({ch:6,book:1,id:'capio',p1:'capiō',inf:'capere',perf:'cēpī',ppp:'captus',conj:'3io',gloss:'take, catch, capture',eng:{ing:'capturing',pp:'captured'}});
+N({ch:6,book:1,id:'dies',nom:'diēs',stem:'di',decl:'5',gender:'m',gloss:'day',eng:{sg:'day',pl:'days'}});
+V({ch:6,book:1,id:'discedo',p1:'discēdō',inf:'discēdere',perf:'discessī',ppp:'discessus',conj:'3',gloss:'depart, leave',eng:{ing:'departing',pp:'departed'}});
+W({ch:6,book:1,id:'e_prep',nom:'ē/ex',gloss:'from, out of (+abl.)'});
+V({ch:6,book:1,id:'exspecto',p1:'exspectō',inf:'exspectāre',perf:'exspectāvī',ppp:'exspectātus',conj:'1',gloss:'wait for, expect',eng:{ing:'waiting for',pp:'awaited'}});
+V({ch:6,book:1,id:'facio',p1:'faciō',inf:'facere',perf:'fēcī',ppp:'factus',conj:'3io',gloss:'make, do',eng:{ing:'making',pp:'made'}});
+W({ch:6,book:1,id:'iam',nom:'iam',gloss:'now, already'});
+W({ch:6,book:1,id:'in_acc',nom:'in',gloss:'into, onto (+acc.)'});
+W({ch:6,book:1,id:'inquit',nom:'inquit',gloss:'says'});
+N({ch:6,book:1,id:'maritus',nom:'marītus',stem:'marīt',decl:'2m',gender:'m',gloss:'husband',eng:{sg:'husband',pl:'husbands'}});
+N({ch:6,book:1,id:'mater',nom:'māter',stem:'mātr',decl:'3',gender:'f',gloss:'mother',eng:{sg:'mother',pl:'mothers'}});
+W({ch:6,book:1,id:'prope_prep',nom:'prope',gloss:'near (+acc.)'});
+V({ch:6,book:1,id:'rogo',p1:'rogō',inf:'rogāre',perf:'rogāvī',ppp:'rogātus',conj:'1',gloss:'ask, ask for',eng:{ing:'asking',pp:'asked'}});
+V({ch:6,book:1,id:'sedeo',p1:'sedeō',inf:'sedēre',perf:'sēdī',ppp:'sessus',conj:'2',gloss:'sit',eng:{ing:'sitting',pp:'sat'}});
+V({ch:6,book:1,id:'sto',p1:'stō',inf:'stāre',perf:'stetī',ppp:'status',conj:'1',gloss:'stand',eng:{ing:'standing',pp:'stood'}});
+A({ch:6,book:1,id:'totus',nom:'tōtus',stem:'tōt',type:'212',gloss:'whole'});
+A({ch:6,book:1,id:'tristis',nom:'trīstis',stem:'trīst',type:'3',gloss:'sad'});
+A({ch:6,book:1,id:'tuus',nom:'tuus',stem:'tu',type:'212',gloss:'your (singular), yours'});
+N({ch:6,book:1,id:'uxor',nom:'uxor',stem:'uxōr',decl:'3',gender:'f',gloss:'wife',eng:{sg:'wife',pl:'wives'}});
+
+/* Chapter 7 */
+V({ch:7,book:1,id:'appropinquo',p1:'appropinquō',inf:'appropinquāre',perf:'appropinquāvī',ppp:'appropinquātus',conj:'1',gloss:'approach, come near to',eng:{ing:'approaching',pp:'approached'}});
+W({ch:7,book:1,id:'cur',nom:'cūr?',gloss:'why?'});
+N({ch:7,book:1,id:'epistula',nom:'epistula',stem:'epistul',decl:'1',gender:'f',gloss:'letter',eng:{sg:'letter',pl:'letters'}});
+N({ch:7,book:1,id:'homo',nom:'homō',stem:'homin',decl:'3',gender:'m',gloss:'man, person',eng:{sg:'man',pl:'men'}});
+A({ch:7,book:1,id:'ingens',nom:'ingēns',nNom:'ingēns',stem:'ingent',type:'3',gloss:'huge'});
+N({ch:7,book:1,id:'insula',nom:'īnsula',stem:'īnsul',decl:'1',gender:'f',gloss:'island; apartment building',eng:{sg:'island',pl:'islands'}});
+N({ch:7,book:1,id:'miles',nom:'mīles',stem:'mīlit',decl:'3',gender:'m',gloss:'soldier',eng:{sg:'soldier',pl:'soldiers'}});
+W({ch:7,book:1,id:'minime',nom:'minimē',gloss:'no'});
+V({ch:7,book:1,id:'narro',p1:'nārrō',inf:'nārrāre',perf:'nārrāvī',ppp:'nārrātus',conj:'1',gloss:'tell, relate',eng:{ing:'telling',pp:'told'}});
+N({ch:7,book:1,id:'nauta',nom:'nauta',stem:'naut',decl:'1',gender:'m',gloss:'sailor',eng:{sg:'sailor',pl:'sailors'}});
+W({ch:7,book:1,id:'nunc',nom:'nunc',gloss:'now'});
+W({ch:7,book:1,id:'olim',nom:'ōlim',gloss:'once, some time ago'});
+N({ch:7,book:1,id:'pars',nom:'pars',stem:'part',decl:'3i',gender:'f',gloss:'part',eng:{sg:'part',pl:'parts'}});
+N({ch:7,book:1,id:'puer',nom:'puer',stem:'puer',decl:'2r',gender:'m',gloss:'boy',eng:{sg:'boy',pl:'boys'}});
+V({ch:7,book:1,id:'pugno',p1:'pugnō',inf:'pugnāre',perf:'pugnāvī',ppp:'pugnātus',conj:'1',gloss:'fight',eng:{ing:'fighting',pp:'fought'}});
+N({ch:7,book:1,id:'res',nom:'rēs',stem:'r',decl:'5',gender:'f',gloss:'thing, story',eng:{sg:'thing',pl:'things'}});
+W({ch:7,book:1,id:'saepe',nom:'saepe',gloss:'often'});
+N({ch:7,book:1,id:'silva',nom:'silva',stem:'silv',decl:'1',gender:'f',gloss:'wood, forest',eng:{sg:'wood',pl:'woods'}});
+W({ch:7,book:1,id:'tum',nom:'tum',gloss:'then'});
+W({ch:7,book:1,id:'vehementer',nom:'vehementer',gloss:'loudly, violently, strongly'});
+
+/* Chapter 8 */
+V({ch:8,book:1,id:'ago',p1:'agō',inf:'agere',perf:'ēgī',ppp:'āctus',conj:'3',gloss:'do',eng:{ing:'doing',pp:'done'}});
+V({ch:8,book:1,id:'bibo',p1:'bibō',inf:'bibere',perf:'bibī',ppp:null,conj:'3',gloss:'drink',eng:{ing:'drinking',pp:'drunk'}});
+V({ch:8,book:1,id:'conspicio',p1:'cōnspiciō',inf:'cōnspicere',perf:'cōnspexī',ppp:'cōnspectus',conj:'3io',gloss:'catch sight of, notice',eng:{ing:'noticing',pp:'noticed'}});
+W({ch:8,book:1,id:'de_prep',nom:'dē',gloss:'from, down from; about (+abl.)'});
+N({ch:8,book:1,id:'domus',nom:'domus',stem:'dom',decl:'4',gender:'f',gloss:'house, home',eng:{sg:'house',pl:'houses'}});
+W({ch:8,book:1,id:'eam',nom:'eam',gloss:'her; it'});
+W({ch:8,book:1,id:'eum',nom:'eum',gloss:'him; it'});
+V({ch:8,book:1,id:'gero',p1:'gerō',inf:'gerere',perf:'gessī',ppp:'gestus',conj:'3',gloss:'wear',eng:{ing:'wearing',pp:'worn'}});
+V({ch:8,book:1,id:'iaceo',p1:'iaceō',inf:'iacēre',perf:'iacuī',ppp:null,conj:'2',gloss:'lie down',eng:{ing:'lying',pp:'lain'}});
+V({ch:8,book:1,id:'incendo',p1:'incendō',inf:'incendere',perf:'incendī',ppp:'incēnsus',conj:'3',gloss:'burn, set on fire',eng:{ing:'burning',pp:'burned'}});
+W({ch:8,book:1,id:'mox',nom:'mox',gloss:'soon'});
+W({ch:8,book:1,id:'nihil',nom:'nihil',gloss:'nothing'});
+A({ch:8,book:1,id:'noster',nom:'noster',erNom:'noster',stem:'nostr',type:'212',gloss:'our'});
+N({ch:8,book:1,id:'porta',nom:'porta',stem:'port',decl:'1',gender:'f',gloss:'gate',eng:{sg:'gate',pl:'gates'}});
+W({ch:8,book:1,id:'postquam',nom:'postquam',gloss:'after'});
+V({ch:8,book:1,id:'procedo',p1:'prōcēdō',inf:'prōcēdere',perf:'prōcessī',ppp:'prōcessus',conj:'3',gloss:'go along, proceed',eng:{ing:'proceeding',pp:'proceeded'}});
+N({ch:8,book:1,id:'senex',nom:'senex',stem:'sen',decl:'3',gender:'m',gloss:'old person',eng:{sg:'old man',pl:'old men'}});
+V({ch:8,book:1,id:'surgo',p1:'surgō',inf:'surgere',perf:'surrēxī',ppp:'surrēctus',conj:'3',gloss:'get up',eng:{ing:'getting up',pp:'got up'}});
+W({ch:8,book:1,id:'tandem',nom:'tandem',gloss:'at last, finally'});
+W({ch:8,book:1,id:'trans_prep',nom:'trāns',gloss:'across (+acc.)'});
+
+/* Chapter 9 */
+V({ch:9,book:1,id:'advenio',p1:'adveniō',inf:'advenīre',perf:'advēnī',ppp:'adventus',conj:'4',gloss:'arrive',eng:{ing:'arriving',pp:'arrived'}});
+N({ch:9,book:1,id:'civis',nom:'cīvis',stem:'cīv',decl:'3i',gender:'m',gloss:'citizen',eng:{sg:'citizen',pl:'citizens'}});
+A({ch:9,book:1,id:'difficilis',nom:'difficilis',stem:'difficil',type:'3',gloss:'difficult'});
+N({ch:9,book:1,id:'domina',nom:'domina',stem:'domin',decl:'1',gender:'f',gloss:'mistress, lady',eng:{sg:'mistress',pl:'mistresses'}});
+A({ch:9,book:1,id:'gravis',nom:'gravis',stem:'grav',type:'3',gloss:'heavy; serious'});
+N({ch:9,book:1,id:'hostis',nom:'hostis',stem:'host',decl:'3i',gender:'m',gloss:'enemy',eng:{sg:'enemy',pl:'enemies'}});
+N({ch:9,book:1,id:'imperator',nom:'imperātor',stem:'imperātōr',decl:'3',gender:'m',gloss:'emperor, general',eng:{sg:'general',pl:'generals'}});
+A({ch:9,book:1,id:'iratus',nom:'īrātus',stem:'īrāt',type:'212',gloss:'angry'});
+N({ch:9,book:1,id:'iter',nom:'iter',stem:'itiner',decl:'3n',gender:'n',gloss:'journey, route, way'});
+V({ch:9,book:1,id:'lacrimo',p1:'lacrimō',inf:'lacrimāre',perf:'lacrimāvī',ppp:'lacrimātus',conj:'1',gloss:'cry, weep',eng:{ing:'weeping',pp:'wept'}});
+N({ch:9,book:1,id:'liberi',nom:'līberī',stem:'līber',decl:'2m',gender:'m',gloss:'children',pluraleTantum:true});
+A({ch:9,book:1,id:'medius',nom:'medius',stem:'medi',type:'212',gloss:'middle, middle of'});
+N({ch:9,book:1,id:'nuntius',nom:'nūntius',stem:'nūnti',decl:'2m',gender:'m',gloss:'messenger; message, news',eng:{sg:'messenger',pl:'messengers'}});
+A({ch:9,book:1,id:'pauci',nom:'paucī',stem:'pauc',type:'212',gloss:'few, a few'});
+V({ch:9,book:1,id:'peto',p1:'petō',inf:'petere',perf:'petīvī',ppp:'petītus',conj:'3',gloss:'attack; seek, beg, ask for',eng:{ing:'seeking',pp:'sought'}});
+N({ch:9,book:1,id:'sanguis',nom:'sanguis',stem:'sanguin',decl:'3',gender:'m',gloss:'blood'});
+W({ch:9,book:1,id:'statim',nom:'statim',gloss:'immediately, at once'});
+V({ch:9,book:1,id:'trado',p1:'trādō',inf:'trādere',perf:'trādidī',ppp:'trāditus',conj:'3',gloss:'hand over, hand down',eng:{ing:'handing over',pp:'handed over'}});
+N({ch:9,book:1,id:'vir',nom:'vir',stem:'vir',decl:'2r',gender:'m',gloss:'man',eng:{sg:'man',pl:'men'}});
+N({ch:9,book:1,id:'vita',nom:'vīta',stem:'vīt',decl:'1',gender:'f',gloss:'life',eng:{sg:'life',pl:'lives'}});
+
+/* Chapter 10 */
+V({ch:10,book:1,id:'accipio',p1:'accipiō',inf:'accipere',perf:'accēpī',ppp:'acceptus',conj:'3io',gloss:'accept, take in, receive',eng:{ing:'receiving',pp:'received'}});
+A({ch:10,book:1,id:'alius',nom:'alius',stem:'ali',type:'212',gloss:'another, other'});
+N({ch:10,book:1,id:'annus',nom:'annus',stem:'ann',decl:'2m',gender:'m',gloss:'year',eng:{sg:'year',pl:'years'}});
+A({ch:10,book:1,id:'bonus',nom:'bonus',stem:'bon',type:'212',gloss:'good'});
+W({ch:10,book:1,id:'contra_prep',nom:'contrā',gloss:'against (+acc.)'});
+N({ch:10,book:1,id:'dea',nom:'dea',stem:'de',decl:'1',gender:'f',gloss:'goddess',eng:{sg:'goddess',pl:'goddesses'}});
+W({ch:10,book:1,id:'deinde',nom:'deinde',gloss:'then'});
+V({ch:10,book:1,id:'fero',p1:'ferō',inf:'ferre',perf:'tulī',ppp:'lātus',conj:'irr',irregular:'fero',gloss:'bring, carry, bear'});
+A({ch:10,book:1,id:'fidelis',nom:'fidēlis',stem:'fidēl',type:'3',gloss:'loyal, faithful, trustworthy'});
+V({ch:10,book:1,id:'iacio',p1:'iaciō',inf:'iacere',perf:'iēcī',ppp:'iactus',conj:'3io',gloss:'throw',eng:{ing:'throwing',pp:'thrown'}});
+N({ch:10,book:1,id:'locus',nom:'locus',stem:'loc',decl:'2m',gender:'m',gloss:'place',eng:{sg:'place',pl:'places'}});
+A({ch:10,book:1,id:'miser',nom:'miser',erNom:'miser',stem:'miser',type:'212',gloss:'poor, unfortunate'});
+A({ch:10,book:1,id:'novus',nom:'novus',stem:'nov',type:'212',gloss:'new'});
+A({ch:10,book:1,id:'nullus',nom:'nūllus',stem:'nūll',type:'212',gloss:'no, not any'});
+V({ch:10,book:1,id:'occido',p1:'occīdō',inf:'occīdere',perf:'occīdī',ppp:'occīsus',conj:'3',gloss:'kill',eng:{ing:'killing',pp:'killed'}});
+N({ch:10,book:1,id:'pax',nom:'pāx',stem:'pāc',decl:'3',gender:'f',gloss:'peace'});
+V({ch:10,book:1,id:'pereo',p1:'pereō',inf:'perīre',perf:'periī',ppp:'peritus',conj:'irr',irregular:'eo',gloss:'die, perish'});
+W({ch:10,book:1,id:'quam_excl',nom:'quam',gloss:'how ...!'});
+A({ch:10,book:1,id:'sacer',nom:'sacer',erNom:'sacer',stem:'sacr',type:'212',gloss:'sacred, holy'});
+W({ch:10,book:1,id:'sub_prep',nom:'sub',gloss:'under, below (+acc./abl.)'});
+
+/* Chapter 11 */
+V({ch:11,book:1,id:'absum',p1:'absum',inf:'abesse',perf:'āfuī',ppp:null,conj:'irr',irregular:'sum',gloss:'am out, absent, away'});
+V({ch:11,book:1,id:'accido',p1:'accidō',inf:'accidere',perf:'accidī',ppp:null,conj:'3',gloss:'happen',eng:{ing:'happening',pp:'happened'}});
+A({ch:11,book:1,id:'altus',nom:'altus',stem:'alt',type:'212',gloss:'high, deep'});
+W({ch:11,book:1,id:'bene',nom:'bene',gloss:'well'});
+N({ch:11,book:1,id:'dux',nom:'dux',stem:'duc',decl:'3',gender:'m',gloss:'leader',eng:{sg:'leader',pl:'leaders'}});
+N({ch:11,book:1,id:'flumen',nom:'flūmen',stem:'flūmin',decl:'3n',gender:'n',gloss:'river',eng:{sg:'river',pl:'rivers'}});
+A({ch:11,book:1,id:'fortis',nom:'fortis',stem:'fort',type:'3',gloss:'brave'});
+W({ch:11,book:1,id:'frustra',nom:'frūstrā',gloss:'in vain, without success'});
+V({ch:11,book:1,id:'fugio',p1:'fugiō',inf:'fugere',perf:'fūgī',ppp:'fugitus',conj:'3io',gloss:'run away, flee',eng:{ing:'fleeing',pp:'fled'}});
+W({ch:11,book:1,id:'hodie',nom:'hodiē',gloss:'today'});
+W({ch:11,book:1,id:'ibi',nom:'ibi',gloss:'there'});
+V({ch:11,book:1,id:'invenio',p1:'inveniō',inf:'invenīre',perf:'invēnī',ppp:'inventus',conj:'4',gloss:'find',eng:{ing:'finding',pp:'found'}});
+W({ch:11,book:1,id:'itaque',nom:'itaque',gloss:'and so, therefore'});
+N({ch:11,book:1,id:'mare',nom:'mare',stem:'mar',decl:'3in',gender:'n',gloss:'sea'});
+V({ch:11,book:1,id:'navigo',p1:'nāvigō',inf:'nāvigāre',perf:'nāvigāvī',ppp:'nāvigātus',conj:'1',gloss:'sail',eng:{ing:'sailing',pp:'sailed'}});
+N({ch:11,book:1,id:'navis',nom:'nāvis',stem:'nāv',decl:'3i',gender:'f',gloss:'ship',eng:{sg:'ship',pl:'ships'}});
+W({ch:11,book:1,id:'pro_prep',nom:'prō',gloss:'in front of; for (+abl.)'});
+A({ch:11,book:1,id:'saevus',nom:'saevus',stem:'saev',type:'212',gloss:'savage, cruel'});
+A({ch:11,book:1,id:'solus',nom:'sōlus',stem:'sōl',type:'212',gloss:'alone, only, lonely'});
+W({ch:11,book:1,id:'ubi_rel',nom:'ubi',gloss:'where, when'});
+
+/* Chapter 12 */
+N({ch:12,book:1,id:'caelum',nom:'caelum',stem:'cael',decl:'2n',gender:'n',gloss:'sky, heaven'});
+N({ch:12,book:1,id:'caput',nom:'caput',stem:'capit',decl:'3n',gender:'n',gloss:'head',eng:{sg:'head',pl:'heads'}});
+N({ch:12,book:1,id:'corpus',nom:'corpus',stem:'corpor',decl:'3n',gender:'n',gloss:'body',eng:{sg:'body',pl:'bodies'}});
+A({ch:12,book:1,id:'crudelis',nom:'crūdēlis',stem:'crūdēl',type:'3',gloss:'cruel'});
+V({ch:12,book:1,id:'deleo',p1:'dēleō',inf:'dēlēre',perf:'dēlēvī',ppp:'dēlētus',conj:'2',gloss:'destroy',eng:{ing:'destroying',pp:'destroyed'}});
+W({ch:12,book:1,id:'diu',nom:'diū',gloss:'for a long time'});
+N({ch:12,book:1,id:'ianua',nom:'iānua',stem:'iānu',decl:'1',gender:'f',gloss:'door, doorway',eng:{sg:'door',pl:'doors'}});
+W({ch:12,book:1,id:'iterum',nom:'iterum',gloss:'again'});
+V({ch:12,book:1,id:'mitto',p1:'mittō',inf:'mittere',perf:'mīsī',ppp:'missus',conj:'3',gloss:'send',eng:{ing:'sending',pp:'sent'}});
+V({ch:12,book:1,id:'offero',p1:'offerō',inf:'offerre',perf:'obtulī',ppp:'oblātus',conj:'irr',irregular:'fero',gloss:'offer'});
+W({ch:12,book:1,id:'quis',nom:'quis? quid?',gloss:'who? what?'});
+V({ch:12,book:1,id:'redeo',p1:'redeō',inf:'redīre',perf:'rediī',ppp:'reditus',conj:'irr',irregular:'eo',gloss:'go back, return'});
+N({ch:12,book:1,id:'roma',nom:'Rōma',stem:'Rōm',decl:'1',gender:'f',gloss:'Rome'});
+V({ch:12,book:1,id:'servo',p1:'servō',inf:'servāre',perf:'servāvī',ppp:'servātus',conj:'1',gloss:'save, protect, keep',eng:{ing:'saving',pp:'saved'}});
+A({ch:12,book:1,id:'stultus',nom:'stultus',stem:'stult',type:'212',gloss:'stupid, foolish'});
+V({ch:12,book:1,id:'supero',p1:'superō',inf:'superāre',perf:'superāvī',ppp:'superātus',conj:'1',gloss:'overcome, overpower',eng:{ing:'overcoming',pp:'overcome'}});
+N({ch:12,book:1,id:'taberna',nom:'taberna',stem:'tabern',decl:'1',gender:'f',gloss:'shop, inn',eng:{sg:'shop',pl:'shops'}});
+N({ch:12,book:1,id:'terra',nom:'terra',stem:'terr',decl:'1',gender:'f',gloss:'ground',eng:{sg:'land',pl:'lands'}});
+V({ch:12,book:1,id:'traho',p1:'trahō',inf:'trahere',perf:'trāxī',ppp:'tractus',conj:'3',gloss:'drag, draw, pull',eng:{ing:'dragging',pp:'dragged'}});
+N({ch:12,book:1,id:'vox',nom:'vōx',stem:'vōc',decl:'3',gender:'f',gloss:'voice, shout',eng:{sg:'voice',pl:'voices'}});
+
+/* Chapter 13 */
+V({ch:13,book:1,id:'coepi',p1:'coepī',inf:'coepisse',perf:'coepī',ppp:'coeptus',conj:'irr',irregular:'defect',gloss:'began'});
+V({ch:13,book:1,id:'consumo',p1:'cōnsūmō',inf:'cōnsūmere',perf:'cōnsūmpsī',ppp:'cōnsūmptus',conj:'3',gloss:'consume, eat',eng:{ing:'consuming',pp:'consumed'}});
+V({ch:13,book:1,id:'intellego',p1:'intellegō',inf:'intellegere',perf:'intellēxī',ppp:'intellēctus',conj:'3',gloss:'understand, realize',eng:{ing:'understanding',pp:'understood'}});
+W({ch:13,book:1,id:'inter_prep',nom:'inter',gloss:'among, between (+acc.)'});
+W({ch:13,book:1,id:'itavero',nom:'ita vērō',gloss:'yes, absolutely'});
+N({ch:13,book:1,id:'labor',nom:'labor',stem:'labōr',decl:'3',gender:'m',gloss:'work',eng:{sg:'task',pl:'tasks'}});
+A({ch:13,book:1,id:'longus',nom:'longus',stem:'long',type:'212',gloss:'long'});
+N({ch:13,book:1,id:'murus',nom:'mūrus',stem:'mūr',decl:'2m',gender:'m',gloss:'wall',eng:{sg:'wall',pl:'walls'}});
+N({ch:13,book:1,id:'nomen',nom:'nōmen',stem:'nōmin',decl:'3n',gender:'n',gloss:'name',eng:{sg:'name',pl:'names'}});
+V({ch:13,book:1,id:'paro',p1:'parō',inf:'parāre',perf:'parāvī',ppp:'parātus',conj:'1',gloss:'prepare',eng:{ing:'preparing',pp:'prepared'}});
+W({ch:13,book:1,id:'post_prep',nom:'post',gloss:'after, behind (+acc.)'});
+N({ch:13,book:1,id:'praemium',nom:'praemium',stem:'praemi',decl:'2n',gender:'n',gloss:'prize, reward, profit',eng:{sg:'reward',pl:'rewards'}});
+W({ch:13,book:1,id:'quamquam',nom:'quamquam',gloss:'although'});
+W({ch:13,book:1,id:'qui_rel',nom:'quī, quae, quod',gloss:'who, which'});
+W({ch:13,book:1,id:'quomodo',nom:'quōmodo?',gloss:'how? in what way?'});
+W({ch:13,book:1,id:'semper',nom:'semper',gloss:'always'});
+A({ch:13,book:1,id:'summus',nom:'summus',stem:'summ',type:'212',gloss:'highest, greatest, top (of)'});
+A({ch:13,book:1,id:'suus',nom:'suus',stem:'su',type:'212',gloss:'her, his, its, their (own)'});
+W({ch:13,book:1,id:'tamen',nom:'tamen',gloss:'however'});
+V({ch:13,book:1,id:'vivo',p1:'vīvō',inf:'vīvere',perf:'vīxī',ppp:'vīctus',conj:'3',gloss:'live, am alive',eng:{ing:'living',pp:'lived'}});
+
+/* Chapter 14 */
+V({ch:14,book:1,id:'amo',p1:'amō',inf:'amāre',perf:'amāvī',ppp:'amātus',conj:'1',gloss:'love, like',eng:{ing:'loving',pp:'loved'}});
+N({ch:14,book:1,id:'amor',nom:'amor',stem:'amōr',decl:'3',gender:'m',gloss:'love'});
+V({ch:14,book:1,id:'cogito',p1:'cōgitō',inf:'cōgitāre',perf:'cōgitāvī',ppp:'cōgitātus',conj:'1',gloss:'think, consider',eng:{ing:'thinking',pp:'thought'}});
+V({ch:14,book:1,id:'conficio',p1:'cōnficiō',inf:'cōnficere',perf:'cōnfēcī',ppp:'cōnfectus',conj:'3io',gloss:'finish',eng:{ing:'finishing',pp:'finished'}});
+N({ch:14,book:1,id:'consilium',nom:'cōnsilium',stem:'cōnsili',decl:'2n',gender:'n',gloss:'plan, idea, advice',eng:{sg:'plan',pl:'plans'}});
+V({ch:14,book:1,id:'constituo',p1:'cōnstituō',inf:'cōnstituere',perf:'cōnstituī',ppp:'cōnstitūtus',conj:'3',gloss:'decide',eng:{ing:'deciding',pp:'decided'}});
+A({ch:14,book:1,id:'dirus',nom:'dīrus',stem:'dīr',type:'212',gloss:'dreadful'});
+W({ch:14,book:1,id:'eos',nom:'eōs',gloss:'them'});
+N({ch:14,book:1,id:'femina',nom:'fēmina',stem:'fēmin',decl:'1',gender:'f',gloss:'woman',eng:{sg:'woman',pl:'women'}});
+N({ch:14,book:1,id:'mons',nom:'mōns',stem:'mont',decl:'3i',gender:'m',gloss:'mountain',eng:{sg:'mountain',pl:'mountains'}});
+N({ch:14,book:1,id:'mors',nom:'mors',stem:'mort',decl:'3i',gender:'f',gloss:'death'});
+W({ch:14,book:1,id:'nec',nom:'nec',gloss:'and not, nor; neither'});
+V({ch:14,book:1,id:'neco',p1:'necō',inf:'necāre',perf:'necāvī',ppp:'necātus',conj:'1',gloss:'kill',eng:{ing:'killing',pp:'killed'}});
+V({ch:14,book:1,id:'nescio',p1:'nesciō',inf:'nescīre',perf:'nescīvī',ppp:'nescītus',conj:'4',gloss:'don\u2019t know',eng:{ing:'not knowing',pp:'not known'}});
+W({ch:14,book:1,id:'numquam',nom:'numquam',gloss:'never'});
+V({ch:14,book:1,id:'ostendo',p1:'ostendō',inf:'ostendere',perf:'ostendī',ppp:'ostentus',conj:'3',gloss:'show',eng:{ing:'showing',pp:'shown'}});
+N({ch:14,book:1,id:'tempus',nom:'tempus',stem:'tempor',decl:'3n',gender:'n',gloss:'time'});
+V({ch:14,book:1,id:'terreo',p1:'terreō',inf:'terrēre',perf:'terruī',ppp:'territus',conj:'2',gloss:'frighten',eng:{ing:'frightening',pp:'frightened'}});
+N({ch:14,book:1,id:'verbum',nom:'verbum',stem:'verb',decl:'2n',gender:'n',gloss:'word',eng:{sg:'word',pl:'words'}});
+
+/* Chapter 15 */
+W({ch:15,book:1,id:'antea',nom:'anteā',gloss:'before'});
+N({ch:15,book:1,id:'bellum',nom:'bellum',stem:'bell',decl:'2n',gender:'n',gloss:'war',eng:{sg:'war',pl:'wars'}});
+N({ch:15,book:1,id:'cena',nom:'cēna',stem:'cēn',decl:'1',gender:'f',gloss:'dinner, meal',eng:{sg:'dinner',pl:'dinners'}});
+A({ch:15,book:1,id:'ceteri',nom:'cēterī',stem:'cēter',type:'212',gloss:'the rest, the others'});
+V({ch:15,book:1,id:'cognosco',p1:'cognōscō',inf:'cognōscere',perf:'cognōvī',ppp:'cognitus',conj:'3',gloss:'get to know, find out',eng:{ing:'learning',pp:'learned'}});
+N({ch:15,book:1,id:'comes',nom:'comes',stem:'comit',decl:'3',gender:'m',gloss:'comrade, companion',eng:{sg:'companion',pl:'companions'}});
+V({ch:15,book:1,id:'eo',p1:'eō',inf:'īre',perf:'iī',ppp:'itūrus',conj:'irr',irregular:'eo',gloss:'go'});
+W({ch:15,book:1,id:'etiam',nom:'etiam',gloss:'even, also'});
+A({ch:15,book:1,id:'ferox',nom:'ferōx',nNom:'ferōx',stem:'ferōc',type:'3',gloss:'fierce, ferocious'});
+N({ch:15,book:1,id:'hortus',nom:'hortus',stem:'hort',decl:'2m',gender:'m',gloss:'garden',eng:{sg:'garden',pl:'gardens'}});
+W({ch:15,book:1,id:'interea',nom:'intereā',gloss:'meanwhile'});
+V({ch:15,book:1,id:'iubeo',p1:'iubeō',inf:'iubēre',perf:'iussī',ppp:'iussus',conj:'2',gloss:'order',eng:{ing:'ordering',pp:'ordered'}});
+N({ch:15,book:1,id:'libertus',nom:'lībertus',stem:'lībert',decl:'2m',gender:'m',gloss:'freedman, former slave',eng:{sg:'freedman',pl:'freedmen'}});
+W({ch:15,book:1,id:'multum',nom:'multum',gloss:'much'});
+W({ch:15,book:1,id:'nonne',nom:'nōnne?',gloss:'surely?'});
+V({ch:15,book:1,id:'nuntio',p1:'nūntiō',inf:'nūntiāre',perf:'nūntiāvī',ppp:'nūntiātus',conj:'1',gloss:'announce, report',eng:{ing:'announcing',pp:'announced'}});
+V({ch:15,book:1,id:'puto',p1:'putō',inf:'putāre',perf:'putāvī',ppp:'putātus',conj:'1',gloss:'think',eng:{ing:'thinking',pp:'thought'}});
+W({ch:15,book:1,id:'se',nom:'sē',gloss:'himself, herself, itself, themselves'});
+W({ch:15,book:1,id:'simulatque',nom:'simulatque',gloss:'as soon as'});
+N({ch:15,book:1,id:'villa',nom:'vīlla',stem:'vīll',decl:'1',gender:'f',gloss:'country house, house',eng:{sg:'house',pl:'houses'}});
+
+/* Chapter 16 */
+W({ch:16,book:1,id:'ac',nom:'ac',gloss:'and'});
+V({ch:16,book:1,id:'aufero',p1:'auferō',inf:'auferre',perf:'abstulī',ppp:'ablātus',conj:'irr',irregular:'fero',gloss:'steal, carry off'});
+A({ch:16,book:1,id:'brevis',nom:'brevis',stem:'brev',type:'3',gloss:'short, brief'});
+V({ch:16,book:1,id:'celo',p1:'cēlō',inf:'cēlāre',perf:'cēlāvī',ppp:'cēlātus',conj:'1',gloss:'hide',eng:{ing:'hiding',pp:'hidden'}});
+W({ch:16,book:1,id:'hic_pron',nom:'hic, haec, hoc',gloss:'this, he, she, it'});
+W({ch:16,book:1,id:'ille_pron',nom:'ille, illa, illud',gloss:'that, he, she, it'});
+N({ch:16,book:1,id:'imperium',nom:'imperium',stem:'imperi',decl:'2n',gender:'n',gloss:'empire; power'});
+V({ch:16,book:1,id:'lego2',p1:'legō',inf:'legere',perf:'lēgī',ppp:'lēctus',conj:'3',gloss:'read; choose',eng:{ing:'choosing',pp:'chosen'}});
+N({ch:16,book:1,id:'lux',nom:'lūx',stem:'lūc',decl:'3',gender:'f',gloss:'light, daylight'});
+V({ch:16,book:1,id:'oro',p1:'ōrō',inf:'ōrāre',perf:'ōrāvī',ppp:'ōrātus',conj:'1',gloss:'beg, beg for',eng:{ing:'begging',pp:'begged'}});
+N({ch:16,book:1,id:'princeps',nom:'prīnceps',stem:'prīncip',decl:'3',gender:'m',gloss:'chief; emperor',eng:{sg:'emperor',pl:'emperors'}});
+W({ch:16,book:1,id:'quo',nom:'quō?',gloss:'where to?'});
+V({ch:16,book:1,id:'rapio',p1:'rapiō',inf:'rapere',perf:'rapuī',ppp:'raptus',conj:'3io',gloss:'seize, grab',eng:{ing:'seizing',pp:'seized'}});
+N({ch:16,book:1,id:'regina',nom:'rēgīna',stem:'rēgīn',decl:'1',gender:'f',gloss:'queen',eng:{sg:'queen',pl:'queens'}});
+V({ch:16,book:1,id:'resisto',p1:'resistō',inf:'resistere',perf:'restitī',ppp:null,conj:'3',gloss:'resist',eng:{ing:'resisting',pp:'resisted'}});
+V({ch:16,book:1,id:'revenio',p1:'reveniō',inf:'revenīre',perf:'revēnī',ppp:'reventus',conj:'4',gloss:'come back, return',eng:{ing:'returning',pp:'returned'}});
+V({ch:16,book:1,id:'scio',p1:'sciō',inf:'scīre',perf:'scīvī',ppp:'scītus',conj:'4',gloss:'know',eng:{ing:'knowing',pp:'known'}});
+V({ch:16,book:1,id:'sentio',p1:'sentiō',inf:'sentīre',perf:'sēnsī',ppp:'sēnsus',conj:'4',gloss:'feel, notice',eng:{ing:'noticing',pp:'noticed'}});
+W({ch:16,book:1,id:'si',nom:'sī',gloss:'if'});
+W({ch:16,book:1,id:'sine_prep',nom:'sine',gloss:'without (+abl.)'});
+
+/* ---------------- BOOK 2 ---------------- */
+/* Chapter 17 */
+V({ch:17,book:2,id:'appareo',p1:'appāreō',inf:'appārēre',perf:'appāruī',ppp:null,conj:'2',gloss:'appear',eng:{ing:'appearing',pp:'appeared'}});
+A({ch:17,book:2,id:'benignus',nom:'benignus',stem:'benign',type:'212',gloss:'kind, generous'});
+A({ch:17,book:2,id:'durus',nom:'dūrus',stem:'dūr',type:'212',gloss:'hard, harsh'});
+V({ch:17,book:2,id:'emo',p1:'emō',inf:'emere',perf:'ēmī',ppp:'ēmptus',conj:'3',gloss:'buy',eng:{ing:'buying',pp:'bought'}});
+W({ch:17,book:2,id:'et_even',nom:'et',gloss:'even, also; and'});
+W({ch:17,book:2,id:'huc',nom:'hūc',gloss:'here, to this place'});
+W({ch:17,book:2,id:'igitur',nom:'igitur',gloss:'therefore, and so'});
+W({ch:17,book:2,id:'is_pron',nom:'is, ea, id',gloss:'this, that; he, she, it, them'});
+A({ch:17,book:2,id:'lentus',nom:'lentus',stem:'lent',type:'212',gloss:'slow'});
+W({ch:17,book:2,id:'libenter',nom:'libenter',gloss:'willingly, gladly'});
+V({ch:17,book:2,id:'libero',p1:'līberō',inf:'līberāre',perf:'līberāvī',ppp:'līberātus',conj:'1',gloss:'free, set free',eng:{ing:'freeing',pp:'freed'}});
+V({ch:17,book:2,id:'oppugno',p1:'oppugnō',inf:'oppugnāre',perf:'oppugnāvī',ppp:'oppugnātus',conj:'1',gloss:'attack',eng:{ing:'attacking',pp:'attacked'}});
+W({ch:17,book:2,id:'paene',nom:'paene',gloss:'almost, nearly'});
+A({ch:17,book:2,id:'plenus',nom:'plēnus',stem:'plēn',type:'212',gloss:'full'});
+V({ch:17,book:2,id:'praebeo',p1:'praebeō',inf:'praebēre',perf:'praebuī',ppp:'praebitus',conj:'2',gloss:'provide',eng:{ing:'providing',pp:'provided'}});
+W({ch:17,book:2,id:'pro_prep2',nom:'prō',gloss:'for, in return for; in front of (+abl.)'});
+W({ch:17,book:2,id:'quam_sup',nom:'quam',gloss:'as ... as possible (+ superlative)'});
+V({ch:17,book:2,id:'relinquo',p1:'relinquō',inf:'relinquere',perf:'relīquī',ppp:'relictus',conj:'3',gloss:'leave, leave behind',eng:{ing:'leaving',pp:'left'}});
+N({ch:17,book:2,id:'sol',nom:'sōl',stem:'sōl',decl:'3',gender:'m',gloss:'sun'});
+N({ch:17,book:2,id:'unda',nom:'unda',stem:'und',decl:'1',gender:'f',gloss:'wave',eng:{sg:'wave',pl:'waves'}});
+
+/* Chapter 18 */
+V({ch:18,book:2,id:'abeo',p1:'abeō',inf:'abīre',perf:'abiī',ppp:'abitus',conj:'irr',irregular:'eo',gloss:'go away, depart'});
+N({ch:18,book:2,id:'animus',nom:'animus',stem:'anim',decl:'2m',gender:'m',gloss:'spirit, soul, mind',eng:{sg:'mind',pl:'minds'}});
+W({ch:18,book:2,id:'aut',nom:'aut',gloss:'either ... or ...'});
+V({ch:18,book:2,id:'credo',p1:'crēdō',inf:'crēdere',perf:'crēdidī',ppp:'crēditus',conj:'3',gloss:'believe, trust (+dat.)',eng:{ing:'believing',pp:'believed'}});
+N({ch:18,book:2,id:'eques',nom:'eques',stem:'equit',decl:'3',gender:'m',gloss:'horseman; pl. = cavalry',eng:{sg:'horseman',pl:'horsemen'}});
+V({ch:18,book:2,id:'exeo',p1:'exeō',inf:'exīre',perf:'exiī',ppp:'exitus',conj:'irr',irregular:'eo',gloss:'come out of'});
+A({ch:18,book:2,id:'felix',nom:'fēlīx',nNom:'fēlīx',stem:'fēlīc',type:'3',gloss:'lucky, fortunate; happy'});
+W({ch:18,book:2,id:'heri',nom:'heri',gloss:'yesterday'});
+N({ch:18,book:2,id:'legio',nom:'legiō',stem:'legiōn',decl:'3',gender:'f',gloss:'legion',eng:{sg:'legion',pl:'legions'}});
+V({ch:18,book:2,id:'licet',p1:'licet',inf:'licēre',perf:'licuit',ppp:null,conj:'2',gloss:'it is allowed, one may',impersonal:true});
+A({ch:18,book:2,id:'malus',nom:'malus',stem:'mal',type:'212',gloss:'bad, evil'});
+W({ch:18,book:2,id:'nam',nom:'nam',gloss:'for'});
+W({ch:18,book:2,id:'necesse',nom:'necesse',gloss:'necessary'});
+V({ch:18,book:2,id:'pervenio',p1:'perveniō',inf:'pervenīre',perf:'pervēnī',ppp:'perventus',conj:'4',gloss:'arrive, reach',eng:{ing:'arriving',pp:'arrived'}});
+V({ch:18,book:2,id:'placeo',p1:'placeō',inf:'placēre',perf:'placuī',ppp:'placitus',conj:'2',gloss:'please (+dat.)',eng:{ing:'pleasing',pp:'pleased'}});
+V({ch:18,book:2,id:'promitto',p1:'prōmittō',inf:'prōmittere',perf:'prōmīsī',ppp:'prōmissus',conj:'3',gloss:'promise',eng:{ing:'promising',pp:'promised'}});
+W({ch:18,book:2,id:'quam_than',nom:'quam',gloss:'than; how ...? how ...!'});
+V({ch:18,book:2,id:'scribo',p1:'scrībō',inf:'scrībere',perf:'scrīpsī',ppp:'scrīptus',conj:'3',gloss:'write',eng:{ing:'writing',pp:'written'}});
+N({ch:18,book:2,id:'umbra',nom:'umbra',stem:'umbr',decl:'1',gender:'f',gloss:'shadow, shade; ghost',eng:{sg:'shadow',pl:'shadows'}});
+A({ch:18,book:2,id:'vetus',nom:'vetus',nNom:'vetus',stem:'veter',type:'3',gloss:'old'});
+
+/* Chapter 19 */
+V({ch:19,book:2,id:'adfero',p1:'adferō',inf:'adferre',perf:'attulī',ppp:'adlātus',conj:'irr',irregular:'fero',gloss:'bring'});
+V({ch:19,book:2,id:'gero2',p1:'gerō',inf:'gerere',perf:'gessī',ppp:'gestus',conj:'3',gloss:'wage (war); wear (clothes)',eng:{ing:'waging',pp:'waged'}});
+N({ch:19,book:2,id:'lacrima',nom:'lacrima',stem:'lacrim',decl:'1',gender:'f',gloss:'tear',eng:{sg:'tear',pl:'tears'}});
+W({ch:19,book:2,id:'lente',nom:'lentē',gloss:'slowly'});
+A({ch:19,book:2,id:'maximus',nom:'maximus',stem:'maxim',type:'212',gloss:'very big, huge; biggest, greatest'});
+A({ch:19,book:2,id:'melior',nom:'melior',nNom:'melius',stem:'meliōr',type:'3',gloss:'better'});
+A({ch:19,book:2,id:'mortuus',nom:'mortuus',stem:'mortu',type:'212',gloss:'dead'});
+W({ch:19,book:2,id:'multo',nom:'multō',gloss:'much, by much'});
+W({ch:19,book:2,id:'neque',nom:'neque',gloss:'and not, nor; neither ... nor ...'});
+N({ch:19,book:2,id:'oculus',nom:'oculus',stem:'ocul',decl:'2m',gender:'m',gloss:'eye',eng:{sg:'eye',pl:'eyes'}});
+A({ch:19,book:2,id:'optimus',nom:'optimus',stem:'optim',type:'212',gloss:'very good, excellent; best'});
+V({ch:19,book:2,id:'pono',p1:'pōnō',inf:'pōnere',perf:'posuī',ppp:'positus',conj:'3',gloss:'put, place, put up',eng:{ing:'placing',pp:'placed'}});
+V({ch:19,book:2,id:'refero',p1:'referō',inf:'referre',perf:'rettulī',ppp:'relātus',conj:'irr',irregular:'fero',gloss:'bring back; report, tell'});
+W({ch:19,book:2,id:'sic',nom:'sīc',gloss:'so, in this way'});
+W({ch:19,book:2,id:'sicut',nom:'sīcut',gloss:'just as, like'});
+W({ch:19,book:2,id:'ut_as',nom:'ut',gloss:'as'});
+N({ch:19,book:2,id:'vestimentum',nom:'vestīmentum',stem:'vestīment',decl:'2n',gender:'n',gloss:'item of clothing; pl. = clothes',eng:{sg:'garment',pl:'clothes'}});
+N({ch:19,book:2,id:'votum',nom:'vōtum',stem:'vōt',decl:'2n',gender:'n',gloss:'prayer',eng:{sg:'prayer',pl:'prayers'}});
+N({ch:19,book:2,id:'vulnus',nom:'vulnus',stem:'vulner',decl:'3n',gender:'n',gloss:'wound',eng:{sg:'wound',pl:'wounds'}});
+
+/* Chapter 20 */
+W({ch:20,book:2,id:'ab_prep',nom:'ā/ab',gloss:'by; from, away from (+abl.)'});
+V({ch:20,book:2,id:'adeo_v',p1:'adeō',inf:'adīre',perf:'adiī',ppp:'aditus',conj:'irr',irregular:'eo',gloss:'go to, approach'});
+V({ch:20,book:2,id:'ago2',p1:'agō',inf:'agere',perf:'ēgī',ppp:'āctus',conj:'3',gloss:'act; drive, lead; do',eng:{ing:'doing',pp:'done'}});
+A({ch:20,book:2,id:'alter',nom:'alter',erNom:'alter',stem:'alter',type:'212',gloss:'the other, one of two, the second of two'});
+V({ch:20,book:2,id:'amitto',p1:'āmittō',inf:'āmittere',perf:'āmīsī',ppp:'āmissus',conj:'3',gloss:'lose',eng:{ing:'losing',pp:'lost'}});
+W({ch:20,book:2,id:'atque',nom:'atque',gloss:'and'});
+A({ch:20,book:2,id:'audax',nom:'audāx',nNom:'audāx',stem:'audāc',type:'3',gloss:'bold, daring'});
+V({ch:20,book:2,id:'debeo2',p1:'dēbeō',inf:'dēbēre',perf:'dēbuī',ppp:'dēbitus',conj:'2',gloss:'ought, should, must; owe',eng:{ing:'owing',pp:'owed'}});
+W({ch:20,book:2,id:'enim',nom:'enim',gloss:'for, because'});
+A({ch:20,book:2,id:'facilis',nom:'facilis',stem:'facil',type:'3',gloss:'easy'});
+N({ch:20,book:2,id:'fuga',nom:'fuga',stem:'fug',decl:'1',gender:'f',gloss:'escape',eng:{sg:'escape',pl:'escapes'}});
+W({ch:20,book:2,id:'graviter',nom:'graviter',gloss:'heavily; seriously'});
+W({ch:20,book:2,id:'hic_adv',nom:'hīc',gloss:'here'});
+N({ch:20,book:2,id:'libertas',nom:'lībertās',stem:'lībertāt',decl:'3',gender:'f',gloss:'freedom'});
+V({ch:20,book:2,id:'persuadeo',p1:'persuādeō',inf:'persuādēre',perf:'persuāsī',ppp:'persuāsus',conj:'2',gloss:'persuade (+dat.)',eng:{ing:'persuading',pp:'persuaded'}});
+N({ch:20,book:2,id:'telum',nom:'tēlum',stem:'tēl',decl:'2n',gender:'n',gloss:'missile, weapon, spear',eng:{sg:'weapon',pl:'weapons'}});
+W({ch:20,book:2,id:'vix',nom:'vix',gloss:'scarcely, hardly, with difficulty'});
+A({ch:20,book:2,id:'unus',nom:'ūnus',stem:'ūn',type:'212',gloss:'one'});
+W({ch:20,book:2,id:'duo',nom:'duo, duae, duo',gloss:'two'});
+W({ch:20,book:2,id:'tres',nom:'trēs, trēs, tria',gloss:'three'});
+
+/* Chapter 21 */
+A({ch:21,book:2,id:'alius2',nom:'alius',stem:'ali',type:'212',gloss:'else; other, another'});
+N({ch:21,book:2,id:'auris',nom:'auris',stem:'aur',decl:'3i',gender:'f',gloss:'ear',eng:{sg:'ear',pl:'ears'}});
+V({ch:21,book:2,id:'cogo',p1:'cōgō',inf:'cōgere',perf:'coēgī',ppp:'coāctus',conj:'3',gloss:'force, compel',eng:{ing:'forcing',pp:'forced'}});
+W({ch:21,book:2,id:'forte',nom:'forte',gloss:'by chance'});
+N({ch:21,book:2,id:'gaudium',nom:'gaudium',stem:'gaudi',decl:'2n',gender:'n',gloss:'joy, pleasure',eng:{sg:'joy',pl:'joys'}});
+N({ch:21,book:2,id:'ignis',nom:'ignis',stem:'ign',decl:'3i',gender:'m',gloss:'fire'});
+W({ch:21,book:2,id:'longe',nom:'longē',gloss:'far off'});
+N({ch:21,book:2,id:'pes',nom:'pēs',stem:'ped',decl:'3',gender:'m',gloss:'foot',eng:{sg:'foot',pl:'feet'}});
+V({ch:21,book:2,id:'peto2',p1:'petō',inf:'petere',perf:'petīvī',ppp:'petītus',conj:'3',gloss:'make for; attack; seek; beg, ask for',eng:{ing:'seeking',pp:'sought'}});
+N({ch:21,book:2,id:'poena',nom:'poena',stem:'poen',decl:'1',gender:'f',gloss:'punishment',eng:{sg:'punishment',pl:'punishments'}});
+W({ch:21,book:2,id:'postridie',nom:'postrīdiē',gloss:'on the following day'});
+W({ch:21,book:2,id:'propter_prep',nom:'propter',gloss:'on account of, because of (+acc.)'});
+W({ch:21,book:2,id:'quot',nom:'quot?',gloss:'how many?'});
+W({ch:21,book:2,id:'romae',nom:'Rōmae',gloss:'at/in Rome'});
+N({ch:21,book:2,id:'tectum',nom:'tēctum',stem:'tēct',decl:'2n',gender:'n',gloss:'roof',eng:{sg:'roof',pl:'roofs'}});
+A({ch:21,book:2,id:'tutus',nom:'tūtus',stem:'tūt',type:'212',gloss:'safe'});
+W({ch:21,book:2,id:'unde',nom:'unde',gloss:'from where'});
+N({ch:21,book:2,id:'ventus',nom:'ventus',stem:'vent',decl:'2m',gender:'m',gloss:'wind',eng:{sg:'wind',pl:'winds'}});
+A({ch:21,book:2,id:'vester',nom:'vester',erNom:'vester',stem:'vestr',type:'212',gloss:'your (plural), yours'});
+
+/* Chapter 22 (deponents) */
+V({ch:22,book:2,id:'adiuvo',p1:'adiuvō',inf:'adiuvāre',perf:'adiūvī',ppp:'adiūtus',conj:'1',gloss:'help',eng:{ing:'helping',pp:'helped'}});
+W({ch:22,book:2,id:'aliquis',nom:'aliquis, aliquid',gloss:'someone, something'});
+V({ch:22,book:2,id:'aperio',p1:'aperiō',inf:'aperīre',perf:'aperuī',ppp:'apertus',conj:'4',gloss:'open',eng:{ing:'opening',pp:'opened'}});
+N({ch:22,book:2,id:'canis',nom:'canis',stem:'can',decl:'3i',gender:'m',gloss:'dog',eng:{sg:'dog',pl:'dogs'}});
+V({ch:22,book:2,id:'conor',p1:'cōnor',inf:'cōnārī',perf:'cōnātus sum',ppp:'cōnātus',conj:'1',deponent:true,gloss:'try',eng:{ing:'trying',pp:'tried'}});
+N({ch:22,book:2,id:'cura',nom:'cūra',stem:'cūr',decl:'1',gender:'f',gloss:'care, worry',eng:{sg:'worry',pl:'worries'}});
+A({ch:22,book:2,id:'dives',nom:'dīves',nNom:'dīves',stem:'dīvit',type:'3',gloss:'rich'});
+V({ch:22,book:2,id:'egredior',p1:'ēgredior',inf:'ēgredī',perf:'ēgressus sum',ppp:'ēgressus',conj:'3io',deponent:true,gloss:'go out, leave',eng:{ing:'leaving',pp:'left'}});
+V({ch:22,book:2,id:'hortor',p1:'hortor',inf:'hortārī',perf:'hortātus sum',ppp:'hortātus',conj:'1',deponent:true,gloss:'encourage, urge',eng:{ing:'urging',pp:'urged'}});
+V({ch:22,book:2,id:'ingredior',p1:'ingredior',inf:'ingredī',perf:'ingressus sum',ppp:'ingressus',conj:'3io',deponent:true,gloss:'go into, enter',eng:{ing:'entering',pp:'entered'}});
+V({ch:22,book:2,id:'loquor',p1:'loquor',inf:'loquī',perf:'locūtus sum',ppp:'locūtus',conj:'3',deponent:true,gloss:'speak, talk',eng:{ing:'speaking',pp:'spoken'}});
+V({ch:22,book:2,id:'miror',p1:'mīror',inf:'mīrārī',perf:'mīrātus sum',ppp:'mīrātus',conj:'1',deponent:true,gloss:'wonder at, admire',eng:{ing:'admiring',pp:'admired'}});
+V({ch:22,book:2,id:'morior',p1:'morior',inf:'morī',perf:'mortuus sum',ppp:'mortuus',conj:'3io',deponent:true,gloss:'die',eng:{ing:'dying',pp:'died'}});
+V({ch:22,book:2,id:'patior',p1:'patior',inf:'patī',perf:'passus sum',ppp:'passus',conj:'3io',deponent:true,gloss:'suffer, endure',eng:{ing:'suffering',pp:'suffered'}});
+V({ch:22,book:2,id:'precor',p1:'precor',inf:'precārī',perf:'precātus sum',ppp:'precātus',conj:'1',deponent:true,gloss:'pray, pray to',eng:{ing:'praying',pp:'prayed'}});
+V({ch:22,book:2,id:'proficiscor',p1:'proficīscor',inf:'proficīscī',perf:'profectus sum',ppp:'profectus',conj:'3',deponent:true,gloss:'set out',eng:{ing:'setting out',pp:'set out'}});
+V({ch:22,book:2,id:'progredior',p1:'prōgredior',inf:'prōgredī',perf:'prōgressus sum',ppp:'prōgressus',conj:'3io',deponent:true,gloss:'go forward, advance',eng:{ing:'advancing',pp:'advanced'}});
+A({ch:22,book:2,id:'proximus',nom:'proximus',stem:'proxim',type:'212',gloss:'nearest, next to'});
+V({ch:22,book:2,id:'regredior',p1:'regredior',inf:'regredī',perf:'regressus sum',ppp:'regressus',conj:'3io',deponent:true,gloss:'go back, return',eng:{ing:'returning',pp:'returned'}});
+V({ch:22,book:2,id:'sequor',p1:'sequor',inf:'sequī',perf:'secūtus sum',ppp:'secūtus',conj:'3',deponent:true,gloss:'follow',eng:{ing:'following',pp:'followed'}});
+
+/* Chapter 23 */
+W({ch:23,book:2,id:'apud_prep',nom:'apud',gloss:'among, with, at the house of (+acc.)'});
+N({ch:23,book:2,id:'aurum',nom:'aurum',stem:'aur',decl:'2n',gender:'n',gloss:'gold'});
+A({ch:23,book:2,id:'carus',nom:'cārus',stem:'cār',type:'212',gloss:'dear; expensive'});
+A({ch:23,book:2,id:'celer',nom:'celer',erNom:'celer',stem:'celer',type:'3',gloss:'quick, fast'});
+V({ch:23,book:2,id:'conficio2',p1:'cōnficiō',inf:'cōnficere',perf:'cōnfēcī',ppp:'cōnfectus',conj:'3io',gloss:'wear out, exhaust; finish',eng:{ing:'finishing',pp:'finished'}});
+W({ch:23,book:2,id:'cum_subj',nom:'cum',gloss:'when, since (+subj.)'});
+V({ch:23,book:2,id:'curo',p1:'cūrō',inf:'cūrāre',perf:'cūrāvī',ppp:'cūrātus',conj:'1',gloss:'look after, care for',eng:{ing:'caring for',pp:'cared for'}});
+W({ch:23,book:2,id:'dum',nom:'dum',gloss:'while'});
+W({ch:23,book:2,id:'maxime',nom:'maximē',gloss:'very much, a lot, very greatly'});
+A({ch:23,book:2,id:'minor',nom:'minor',nNom:'minus',stem:'minōr',type:'3',gloss:'smaller, less; younger'});
+W({ch:23,book:2,id:'num_q',nom:'num?',gloss:'surely not?'});
+A({ch:23,book:2,id:'paratus',nom:'parātus',stem:'parāt',type:'212',gloss:'ready'});
+N({ch:23,book:2,id:'parens',nom:'parēns',stem:'parent',decl:'3',gender:'m',gloss:'parent',eng:{sg:'parent',pl:'parents'}});
+W({ch:23,book:2,id:'plus',nom:'plūs, plūris',gloss:'more'});
+W({ch:23,book:2,id:'postea',nom:'posteā',gloss:'afterwards'});
+W({ch:23,book:2,id:'qualis',nom:'quālis, quāle',gloss:'what sort of?'});
+W({ch:23,book:2,id:'quantus',nom:'quantus, -a, -um',gloss:'how big? how much?'});
+N({ch:23,book:2,id:'signum',nom:'signum',stem:'sign',decl:'2n',gender:'n',gloss:'sign, signal; seal',eng:{sg:'sign',pl:'signs'}});
+N({ch:23,book:2,id:'soror',nom:'soror',stem:'sorōr',decl:'3',gender:'f',gloss:'sister',eng:{sg:'sister',pl:'sisters'}});
+A({ch:23,book:2,id:'validus',nom:'validus',stem:'valid',type:'212',gloss:'strong'});
+
+/* Chapter 24 */
+V({ch:24,book:2,id:'adduco',p1:'addūcō',inf:'addūcere',perf:'addūxī',ppp:'adductus',conj:'3',gloss:'lead to',eng:{ing:'leading to',pp:'led to'}});
+W({ch:24,book:2,id:'adeo_adv',nom:'adeō',gloss:'so much, so greatly, to such an extent'});
+V({ch:24,book:2,id:'convenio',p1:'conveniō',inf:'convenīre',perf:'convēnī',ppp:'conventus',conj:'4',gloss:'come together, gather, meet',eng:{ing:'gathering',pp:'gathered'}});
+V({ch:24,book:2,id:'despero',p1:'dēspērō',inf:'dēspērāre',perf:'dēspērāvī',ppp:'dēspērātus',conj:'1',gloss:'despair',eng:{ing:'despairing',pp:'despaired'}});
+N({ch:24,book:2,id:'exercitus',nom:'exercitus',stem:'exercit',decl:'4',gender:'m',gloss:'army',eng:{sg:'army',pl:'armies'}});
+W({ch:24,book:2,id:'ita',nom:'ita',gloss:'so, in this way'});
+N({ch:24,book:2,id:'manus',nom:'manus',stem:'man',decl:'4',gender:'f',gloss:'hand; group of people',eng:{sg:'hand',pl:'hands'}});
+W({ch:24,book:2,id:'minime_adv',nom:'minimē',gloss:'very little, least; no'});
+V({ch:24,book:2,id:'muto',p1:'mūtō',inf:'mūtāre',perf:'mūtāvī',ppp:'mūtātus',conj:'1',gloss:'change',eng:{ing:'changing',pp:'changed'}});
+N({ch:24,book:2,id:'opus',nom:'opus',stem:'oper',decl:'3n',gender:'n',gloss:'work'});
+V({ch:24,book:2,id:'reddo',p1:'reddō',inf:'reddere',perf:'reddidī',ppp:'redditus',conj:'3',gloss:'give back, restore',eng:{ing:'restoring',pp:'restored'}});
+N({ch:24,book:2,id:'saxum',nom:'saxum',stem:'sax',decl:'2n',gender:'n',gloss:'rock',eng:{sg:'rock',pl:'rocks'}});
+V({ch:24,book:2,id:'spero',p1:'spērō',inf:'spērāre',perf:'spērāvī',ppp:'spērātus',conj:'1',gloss:'hope, expect',eng:{ing:'hoping',pp:'hoped'}});
+A({ch:24,book:2,id:'talis',nom:'tālis',stem:'tāl',type:'3',gloss:'such, of such a kind'});
+W({ch:24,book:2,id:'tam',nom:'tam',gloss:'so'});
+A({ch:24,book:2,id:'tantus',nom:'tantus',stem:'tant',type:'212',gloss:'so great, such a great, so much'});
+W({ch:24,book:2,id:'tot',nom:'tot',gloss:'so many'});
+W({ch:24,book:2,id:'ut_subj',nom:'ut',gloss:'that, so that (+subj.); as (+indic.)'});
+A({ch:24,book:2,id:'verus',nom:'vērus',stem:'vēr',type:'212',gloss:'true, real'});
+N({ch:24,book:2,id:'vultus',nom:'vultus',stem:'vult',decl:'4',gender:'m',gloss:'expression, face',eng:{sg:'face',pl:'faces'}});
+
+/* Chapter 25 */
+W({ch:25,book:2,id:'ante_prep',nom:'ante',gloss:'before, in front of (+acc.)'});
+W({ch:25,book:2,id:'domi',nom:'domī',gloss:'at home'});
+N({ch:25,book:2,id:'facies',nom:'faciēs',stem:'faci',decl:'5',gender:'f',gloss:'face, appearance',eng:{sg:'face',pl:'faces'}});
+V({ch:25,book:2,id:'frango',p1:'frangō',inf:'frangere',perf:'frēgī',ppp:'frāctus',conj:'3',gloss:'break',eng:{ing:'breaking',pp:'broken'}});
+N({ch:25,book:2,id:'imperium2',nom:'imperium',stem:'imperi',decl:'2n',gender:'n',gloss:'command; empire; power'});
+V({ch:25,book:2,id:'impero',p1:'imperō',inf:'imperāre',perf:'imperāvī',ppp:'imperātus',conj:'1',gloss:'order, command (+dat.)',eng:{ing:'commanding',pp:'commanded'}});
+N({ch:25,book:2,id:'legatus',nom:'lēgātus',stem:'lēgāt',decl:'2m',gender:'m',gloss:'commander, governor',eng:{sg:'commander',pl:'commanders'}});
+A({ch:25,book:2,id:'maior',nom:'maior',nNom:'maius',stem:'maiōr',type:'3',gloss:'bigger, larger, greater'});
+W({ch:25,book:2,id:'mille',nom:'mīlle, pl. mīlia',gloss:'thousand'});
+A({ch:25,book:2,id:'minimus',nom:'minimus',stem:'minim',type:'212',gloss:'very small, tiny'});
+W({ch:25,book:2,id:'ne_subj',nom:'nē',gloss:'that ... not, so that ... not (+subj.)'});
+W({ch:25,book:2,id:'num_whether',nom:'num',gloss:'whether; surely not?'});
+V({ch:25,book:2,id:'pareo',p1:'pāreō',inf:'pārēre',perf:'pāruī',ppp:null,conj:'2',gloss:'obey (+dat.)',eng:{ing:'obeying',pp:'obeyed'}});
+V({ch:25,book:2,id:'postulo',p1:'postulō',inf:'postulāre',perf:'postulāvī',ppp:'postulātus',conj:'1',gloss:'demand',eng:{ing:'demanding',pp:'demanded'}});
+N({ch:25,book:2,id:'res2',nom:'rēs',stem:'r',decl:'5',gender:'f',gloss:'business, matter, event; thing; story',eng:{sg:'thing',pl:'things'}});
+A({ch:25,book:2,id:'scelestus',nom:'scelestus',stem:'scelest',type:'212',gloss:'wicked'});
+N({ch:25,book:2,id:'spes',nom:'spēs',stem:'sp',decl:'5',gender:'f',gloss:'hope'});
+V({ch:25,book:2,id:'trado2',p1:'trādō',inf:'trādere',perf:'trādidī',ppp:'trāditus',conj:'3',gloss:'hand down; hand over',eng:{ing:'handing over',pp:'handed over'}});
+W({ch:25,book:2,id:'umquam',nom:'umquam',gloss:'ever'});
+N({ch:25,book:2,id:'victoria',nom:'victōria',stem:'victōri',decl:'1',gender:'f',gloss:'victory',eng:{sg:'victory',pl:'victories'}});
+
+/* Chapter 26 */
+V({ch:26,book:2,id:'cano',p1:'canō',inf:'canere',perf:'cecinī',ppp:'cantus',conj:'3',gloss:'sing; play (an instrument)',eng:{ing:'singing',pp:'sung'}});
+N({ch:26,book:2,id:'carmen',nom:'carmen',stem:'carmin',decl:'3n',gender:'n',gloss:'poem, song',eng:{sg:'song',pl:'songs'}});
+W({ch:26,book:2,id:'circum_prep',nom:'circum',gloss:'around (+acc.)'});
+N({ch:26,book:2,id:'fatum',nom:'fātum',stem:'fāt',decl:'2n',gender:'n',gloss:'fate, destiny; death',eng:{sg:'fate',pl:'fates'}});
+N({ch:26,book:2,id:'ira',nom:'īra',stem:'īr',decl:'1',gender:'f',gloss:'anger'});
+A({ch:26,book:2,id:'latus',nom:'lātus',stem:'lāt',type:'212',gloss:'wide, broad'});
+W({ch:26,book:2,id:'magnopere',nom:'magnopere',gloss:'greatly, very much'});
+N({ch:26,book:2,id:'modus',nom:'modus',stem:'mod',decl:'2m',gender:'m',gloss:'manner, way, kind, style',eng:{sg:'way',pl:'ways'}});
+A({ch:26,book:2,id:'peior',nom:'peior',nNom:'peius',stem:'peiōr',type:'3',gloss:'worse'});
+A({ch:26,book:2,id:'pessimus',nom:'pessimus',stem:'pessim',type:'212',gloss:'very bad, worst'});
+W({ch:26,book:2,id:'simulac',nom:'simulac',gloss:'as soon as'});
+A({ch:26,book:2,id:'vivus',nom:'vīvus',stem:'vīv',type:'212',gloss:'alive, living'});
+W({ch:26,book:2,id:'quattuor',nom:'quattuor',gloss:'four'});
+W({ch:26,book:2,id:'quinque',nom:'quīnque',gloss:'five'});
+W({ch:26,book:2,id:'sex',nom:'sex',gloss:'six'});
+W({ch:26,book:2,id:'septem',nom:'septem',gloss:'seven'});
+W({ch:26,book:2,id:'octo',nom:'octō',gloss:'eight'});
+W({ch:26,book:2,id:'novem',nom:'novem',gloss:'nine'});
+W({ch:26,book:2,id:'decem',nom:'decem',gloss:'ten'});
+W({ch:26,book:2,id:'centum',nom:'centum',gloss:'a hundred'});
+
+/* Chapter 27 */
+N({ch:27,book:2,id:'arbor',nom:'arbor',stem:'arbor',decl:'3',gender:'f',gloss:'tree',eng:{sg:'tree',pl:'trees'}});
+N({ch:27,book:2,id:'ars',nom:'ars',stem:'art',decl:'3i',gender:'f',gloss:'art, skill',eng:{sg:'skill',pl:'skills'}});
+V({ch:27,book:2,id:'compono',p1:'compōnō',inf:'compōnere',perf:'composuī',ppp:'compositus',conj:'3',gloss:'arrange',eng:{ing:'arranging',pp:'arranged'}});
+A({ch:27,book:2,id:'dexter',nom:'dexter',erNom:'dexter',stem:'dextr',type:'212',gloss:'right'});
+V({ch:27,book:2,id:'doceo',p1:'doceō',inf:'docēre',perf:'docuī',ppp:'doctus',conj:'2',gloss:'teach',eng:{ing:'teaching',pp:'taught'}});
+N({ch:27,book:2,id:'dolor',nom:'dolor',stem:'dolōr',decl:'3',gender:'m',gloss:'pain',eng:{sg:'pain',pl:'pains'}});
+W({ch:27,book:2,id:'dum_subj',nom:'dum',gloss:'until (+subj.); while (+indic.)'});
+V({ch:27,book:2,id:'gaudeo',p1:'gaudeō',inf:'gaudēre',perf:'gāvīsus sum',ppp:'gāvīsus',conj:'2',deponent:true,gloss:'am pleased, rejoice',eng:{ing:'rejoicing',pp:'rejoiced'}});
+V({ch:27,book:2,id:'impono',p1:'impōnō',inf:'impōnere',perf:'imposuī',ppp:'impositus',conj:'3',gloss:'put, put on',eng:{ing:'putting on',pp:'put on'}});
+W({ch:27,book:2,id:'ipse_pron',nom:'ipse, ipsa, ipsum',gloss:'himself, herself, itself, themselves'});
+N({ch:27,book:2,id:'liber_n',nom:'liber',stem:'libr',decl:'2r',gender:'m',gloss:'book',eng:{sg:'book',pl:'books'}});
+N({ch:27,book:2,id:'metus',nom:'metus',stem:'met',decl:'4',gender:'m',gloss:'fear'});
+W({ch:27,book:2,id:'modo',nom:'modo',gloss:'only'});
+V({ch:27,book:2,id:'moneo',p1:'moneō',inf:'monēre',perf:'monuī',ppp:'monitus',conj:'2',gloss:'warn, advise',eng:{ing:'warning',pp:'warned'}});
+N({ch:27,book:2,id:'pectus',nom:'pectus',stem:'pector',decl:'3n',gender:'n',gloss:'chest, breast',eng:{sg:'chest',pl:'chests'}});
+W({ch:27,book:2,id:'primo',nom:'prīmō',gloss:'at first'});
+V({ch:27,book:2,id:'soleo',p1:'soleō',inf:'solēre',perf:'solitus sum',ppp:'solitus',conj:'2',deponent:true,gloss:'am accustomed, used',eng:{ing:'being accustomed',pp:'been accustomed'}});
+N({ch:27,book:2,id:'tempestas',nom:'tempestās',stem:'tempestāt',decl:'3',gender:'f',gloss:'storm',eng:{sg:'storm',pl:'storms'}});
+N({ch:27,book:2,id:'vis',nom:'vīs',stem:'vir',decl:'3i',gender:'f',gloss:'force'});
+V({ch:27,book:2,id:'vulnero',p1:'vulnerō',inf:'vulnerāre',perf:'vulnerāvī',ppp:'vulnerātus',conj:'1',gloss:'wound, injure',eng:{ing:'wounding',pp:'wounded'}});
+
+/* Chapter 28 */
+W({ch:28,book:2,id:'adhuc',nom:'adhūc',gloss:'still, until now'});
+N({ch:28,book:2,id:'ager',nom:'ager',stem:'agr',decl:'2r',gender:'m',gloss:'field',eng:{sg:'field',pl:'fields'}});
+V({ch:28,book:2,id:'ascendo',p1:'ascendō',inf:'ascendere',perf:'ascendī',ppp:'ascēnsus',conj:'3',gloss:'climb',eng:{ing:'climbing',pp:'climbed'}});
+W({ch:28,book:2,id:'autem',nom:'autem',gloss:'but, however'});
+A({ch:28,book:2,id:'beatus',nom:'beātus',stem:'beāt',type:'212',gloss:'happy, blessed'});
+N({ch:28,book:2,id:'copiae',nom:'cōpiae',stem:'cōpi',decl:'1',gender:'f',gloss:'forces, troops',pluraleTantum:true});
+V({ch:28,book:2,id:'descendo',p1:'dēscendō',inf:'dēscendere',perf:'dēscendī',ppp:'dēscēnsus',conj:'3',gloss:'go down, come down',eng:{ing:'descending',pp:'descended'}});
+A({ch:28,book:2,id:'dulcis',nom:'dulcis',stem:'dulc',type:'3',gloss:'sweet'});
+W({ch:28,book:2,id:'ergo',nom:'ergō',gloss:'therefore'});
+V({ch:28,book:2,id:'erro',p1:'errō',inf:'errāre',perf:'errāvī',ppp:'errātus',conj:'1',gloss:'make a mistake; wander',eng:{ing:'wandering',pp:'wandered'}});
+V({ch:28,book:2,id:'incipio',p1:'incipiō',inf:'incipere',perf:'incēpī',ppp:'inceptus',conj:'3io',gloss:'begin, start',eng:{ing:'beginning',pp:'begun'}});
+A({ch:28,book:2,id:'nonnulli',nom:'nōnnūllī',stem:'nōnnūll',type:'212',gloss:'some, several'});
+W({ch:28,book:2,id:'quidam',nom:'quīdam, quaedam, quoddam',gloss:'one, a certain; pl. = some'});
+A({ch:28,book:2,id:'sapiens',nom:'sapiēns',nNom:'sapiēns',stem:'sapient',type:'3',gloss:'wise'});
+N({ch:28,book:2,id:'scelus',nom:'scelus',stem:'sceler',decl:'3n',gender:'n',gloss:'crime',eng:{sg:'crime',pl:'crimes'}});
+W({ch:28,book:2,id:'super_prep',nom:'super',gloss:'over (+acc.)'});
+V({ch:28,book:2,id:'tempto',p1:'temptō',inf:'temptāre',perf:'temptāvī',ppp:'temptātus',conj:'1',gloss:'try',eng:{ing:'trying',pp:'tried'}});
+N({ch:28,book:2,id:'terra2',nom:'terra',stem:'terr',decl:'1',gender:'f',gloss:'country; land, ground',eng:{sg:'land',pl:'lands'}});
+V({ch:28,book:2,id:'videor',p1:'videor',inf:'vidērī',perf:'vīsus sum',ppp:'vīsus',conj:'2',deponent:true,gloss:'seem, appear',eng:{ing:'seeming',pp:'seemed'}});
+N({ch:28,book:2,id:'virgo',nom:'virgō',stem:'virgin',decl:'3',gender:'f',gloss:'girl, young woman',eng:{sg:'young woman',pl:'young women'}});
+
+/* Chapter 29 */
+V({ch:29,book:2,id:'aedifico',p1:'aedificō',inf:'aedificāre',perf:'aedificāvī',ppp:'aedificātus',conj:'1',gloss:'build',eng:{ing:'building',pp:'built'}});
+V({ch:29,book:2,id:'audeo',p1:'audeō',inf:'audēre',perf:'ausus sum',ppp:'ausus',conj:'2',deponent:true,gloss:'dare',eng:{ing:'daring',pp:'dared'}});
+A({ch:29,book:2,id:'clarus',nom:'clārus',stem:'clār',type:'212',gloss:'clear; famous, distinguished'});
+V({ch:29,book:2,id:'custodio',p1:'custōdiō',inf:'custōdīre',perf:'custōdīvī',ppp:'custōdītus',conj:'4',gloss:'guard',eng:{ing:'guarding',pp:'guarded'}});
+V({ch:29,book:2,id:'defendo',p1:'dēfendō',inf:'dēfendere',perf:'dēfendī',ppp:'dēfēnsus',conj:'3',gloss:'defend',eng:{ing:'defending',pp:'defended'}});
+V({ch:29,book:2,id:'dubito',p1:'dubitō',inf:'dubitāre',perf:'dubitāvī',ppp:'dubitātus',conj:'1',gloss:'hesitate, doubt',eng:{ing:'hesitating',pp:'hesitated'}});
+N({ch:29,book:2,id:'gens',nom:'gēns',stem:'gent',decl:'3i',gender:'f',gloss:'people, race, family, tribe',eng:{sg:'tribe',pl:'tribes'}});
+N({ch:29,book:2,id:'honor',nom:'honor',stem:'honōr',decl:'3',gender:'m',gloss:'honor',eng:{sg:'honor',pl:'honors'}});
+N({ch:29,book:2,id:'ingenium',nom:'ingenium',stem:'ingeni',decl:'2n',gender:'n',gloss:'nature, character'});
+V({ch:29,book:2,id:'interficio',p1:'interficiō',inf:'interficere',perf:'interfēcī',ppp:'interfectus',conj:'3io',gloss:'kill',eng:{ing:'killing',pp:'killed'}});
+A({ch:29,book:2,id:'liber_adj',nom:'līber',erNom:'līber',stem:'līber',type:'212',gloss:'free'});
+V({ch:29,book:2,id:'moveo',p1:'moveō',inf:'movēre',perf:'mōvī',ppp:'mōtus',conj:'2',gloss:'move',eng:{ing:'moving',pp:'moved'}});
+W({ch:29,book:2,id:'nisi',nom:'nisi',gloss:'unless, except'});
+N({ch:29,book:2,id:'orbis',nom:'orbis',stem:'orb',decl:'3i',gender:'m',gloss:'globe, sphere'});
+V({ch:29,book:2,id:'posco',p1:'poscō',inf:'poscere',perf:'poposcī',ppp:null,conj:'3',gloss:'ask for, demand',eng:{ing:'demanding',pp:'demanded'}});
+V({ch:29,book:2,id:'rego',p1:'regō',inf:'regere',perf:'rēxī',ppp:'rēctus',conj:'3',gloss:'rule',eng:{ing:'ruling',pp:'ruled'}});
+A({ch:29,book:2,id:'similis',nom:'similis',stem:'simil',type:'3',gloss:'similar, alike'});
+N({ch:29,book:2,id:'somnus',nom:'somnus',stem:'somn',decl:'2m',gender:'m',gloss:'sleep'});
+W({ch:29,book:2,id:'ut_when',nom:'ut',gloss:'when, as soon as; as (+indic.); that, so that (+subj.)'});
+
+/* Chapter 30 */
+V({ch:30,book:2,id:'addo',p1:'addō',inf:'addere',perf:'addidī',ppp:'additus',conj:'3',gloss:'add',eng:{ing:'adding',pp:'added'}});
+N({ch:30,book:2,id:'ara',nom:'āra',stem:'ār',decl:'1',gender:'f',gloss:'altar',eng:{sg:'altar',pl:'altars'}});
+N({ch:30,book:2,id:'captivus',nom:'captīvus',stem:'captīv',decl:'2m',gender:'m',gloss:'captive, prisoner',eng:{sg:'prisoner',pl:'prisoners'}});
+N({ch:30,book:2,id:'coma',nom:'coma',stem:'com',decl:'1',gender:'f',gloss:'hair',eng:{sg:'hair',pl:'hairs'}});
+W({ch:30,book:2,id:'cras',nom:'crās',gloss:'tomorrow'});
+V({ch:30,book:2,id:'disco',p1:'discō',inf:'discere',perf:'didicī',ppp:null,conj:'3',gloss:'learn',eng:{ing:'learning',pp:'learned'}});
+V({ch:30,book:2,id:'fio',p1:'fīō',inf:'fierī',perf:'factus sum',ppp:'factus',conj:'irr',irregular:'fio',gloss:'become'});
+V({ch:30,book:2,id:'iuvo',p1:'iuvō',inf:'iuvāre',perf:'iūvī',ppp:'iūtus',conj:'1',gloss:'help, assist',eng:{ing:'helping',pp:'helped'}});
+V({ch:30,book:2,id:'nego',p1:'negō',inf:'negāre',perf:'negāvī',ppp:'negātus',conj:'1',gloss:'deny, say that ... not',eng:{ing:'denying',pp:'denied'}});
+N({ch:30,book:2,id:'numen',nom:'nūmen',stem:'nūmin',decl:'3n',gender:'n',gloss:'deity, divine power'});
+V({ch:30,book:2,id:'opprimo',p1:'opprimō',inf:'opprimere',perf:'oppressī',ppp:'oppressus',conj:'3',gloss:'crush, overwhelm',eng:{ing:'crushing',pp:'crushed'}});
+N({ch:30,book:2,id:'os',nom:'ōs',stem:'ōr',decl:'3n',gender:'n',gloss:'mouth',eng:{sg:'mouth',pl:'mouths'}});
+V({ch:30,book:2,id:'pello',p1:'pellō',inf:'pellere',perf:'pepulī',ppp:'pulsus',conj:'3',gloss:'drive, push',eng:{ing:'driving',pp:'driven'}});
+V({ch:30,book:2,id:'punio',p1:'pūniō',inf:'pūnīre',perf:'pūnīvī',ppp:'pūnītus',conj:'4',gloss:'punish',eng:{ing:'punishing',pp:'punished'}});
+W({ch:30,book:2,id:'quando',nom:'quandō?',gloss:'when?'});
+W({ch:30,book:2,id:'simul',nom:'simul',gloss:'at the same time'});
+V({ch:30,book:2,id:'solvo',p1:'solvō',inf:'solvere',perf:'solvī',ppp:'solūtus',conj:'3',gloss:'undo, let go',eng:{ing:'releasing',pp:'released'}});
+V({ch:30,book:2,id:'utor',p1:'ūtor',inf:'ūtī',perf:'ūsus sum',ppp:'ūsus',conj:'3',deponent:true,gloss:'use, employ (+abl.)',eng:{ing:'using',pp:'used'}});
+V({ch:30,book:2,id:'verto',p1:'vertō',inf:'vertere',perf:'vertī',ppp:'versus',conj:'3',gloss:'turn',eng:{ing:'turning',pp:'turned'}});
+N({ch:30,book:2,id:'virtus',nom:'virtūs',stem:'virtūt',decl:'3',gender:'f',gloss:'courage, virtue'});
+
+/* Chapter 31 */
+N({ch:31,book:2,id:'arma',nom:'arma',stem:'arm',decl:'2n',gender:'n',gloss:'arms, weapons',pluraleTantum:true});
+N({ch:31,book:2,id:'caedes',nom:'caedēs',stem:'caed',decl:'3i',gender:'f',gloss:'killing, slaughter'});
+N({ch:31,book:2,id:'castra',nom:'castra',stem:'castr',decl:'2n',gender:'n',gloss:'camp',pluraleTantum:true});
+N({ch:31,book:2,id:'casus',nom:'cāsus',stem:'cās',decl:'4',gender:'m',gloss:'accident, chance',eng:{sg:'chance',pl:'chances'}});
+N({ch:31,book:2,id:'causa',nom:'causa',stem:'caus',decl:'1',gender:'f',gloss:'reason',eng:{sg:'reason',pl:'reasons'}});
+N({ch:31,book:2,id:'consul',nom:'cōnsul',stem:'cōnsul',decl:'3',gender:'m',gloss:'consul',eng:{sg:'consul',pl:'consuls'}});
+V({ch:31,book:2,id:'faveo',p1:'faveō',inf:'favēre',perf:'fāvī',ppp:'fautus',conj:'2',gloss:'favor, support (+dat.)',eng:{ing:'favoring',pp:'favored'}});
+W({ch:31,book:2,id:'illic',nom:'illīc',gloss:'there'});
+N({ch:31,book:2,id:'impetus',nom:'impetus',stem:'impet',decl:'4',gender:'m',gloss:'charge, assault',eng:{sg:'charge',pl:'charges'}});
+N({ch:31,book:2,id:'inimicus',nom:'inimīcus',stem:'inimīc',decl:'2m',gender:'m',gloss:'enemy',eng:{sg:'enemy',pl:'enemies'}});
+V({ch:31,book:2,id:'invito',p1:'invītō',inf:'invītāre',perf:'invītāvī',ppp:'invītātus',conj:'1',gloss:'invite',eng:{ing:'inviting',pp:'invited'}});
+N({ch:31,book:2,id:'litus',nom:'lītus',stem:'lītor',decl:'3n',gender:'n',gloss:'shore, beach',eng:{sg:'shore',pl:'shores'}});
+W({ch:31,book:2,id:'magis',nom:'magis',gloss:'more; rather'});
+V({ch:31,book:2,id:'malo',p1:'mālō',inf:'mālle',perf:'māluī',ppp:null,conj:'irr',irregular:'malo',gloss:'prefer'});
+N({ch:31,book:2,id:'mens',nom:'mēns',stem:'ment',decl:'3i',gender:'f',gloss:'mind'});
+N({ch:31,book:2,id:'numerus',nom:'numerus',stem:'numer',decl:'2m',gender:'m',gloss:'number',eng:{sg:'number',pl:'numbers'}});
+N({ch:31,book:2,id:'patria',nom:'patria',stem:'patri',decl:'1',gender:'f',gloss:'country, homeland',eng:{sg:'homeland',pl:'homelands'}});
+N({ch:31,book:2,id:'proelium',nom:'proelium',stem:'proeli',decl:'2n',gender:'n',gloss:'battle',eng:{sg:'battle',pl:'battles'}});
+N({ch:31,book:2,id:'regnum',nom:'rēgnum',stem:'rēgn',decl:'2n',gender:'n',gloss:'kingdom',eng:{sg:'kingdom',pl:'kingdoms'}});
+N({ch:31,book:2,id:'victor',nom:'victor',stem:'victōr',decl:'3',gender:'m',gloss:'winner',eng:{sg:'winner',pl:'winners'}});
+
+/* Chapter 32 */
+N({ch:32,book:2,id:'auxilium',nom:'auxilium',stem:'auxili',decl:'2n',gender:'n',gloss:'help'});
+V({ch:32,book:2,id:'claudo',p1:'claudō',inf:'claudere',perf:'clausī',ppp:'clausus',conj:'3',gloss:'close',eng:{ing:'closing',pp:'closed'}});
+V({ch:32,book:2,id:'colo',p1:'colō',inf:'colere',perf:'coluī',ppp:'cultus',conj:'3',gloss:'worship',eng:{ing:'worshipping',pp:'worshipped'}});
+A({ch:32,book:2,id:'diligens',nom:'dīligēns',nNom:'dīligēns',stem:'dīligent',type:'3',gloss:'careful'});
+W({ch:32,book:2,id:'ecce',nom:'ecce!',gloss:'look! see!'});
+N({ch:32,book:2,id:'finis',nom:'fīnis',stem:'fīn',decl:'3i',gender:'m',gloss:'end'});
+N({ch:32,book:2,id:'flamma',nom:'flamma',stem:'flamm',decl:'1',gender:'f',gloss:'flame; pl. = fire',eng:{sg:'flame',pl:'flames'}});
+N({ch:32,book:2,id:'fortuna',nom:'fortūna',stem:'fortūn',decl:'1',gender:'f',gloss:'fortune',eng:{sg:'fortune',pl:'fortunes'}});
+W({ch:32,book:2,id:'idem',nom:'īdem, eadem, idem',gloss:'the same'});
+N({ch:32,book:2,id:'mos',nom:'mōs',stem:'mōr',decl:'3',gender:'m',gloss:'way, fashion, custom',eng:{sg:'custom',pl:'customs'}});
+W({ch:32,book:2,id:'nondum',nom:'nōndum',gloss:'not yet'});
+N({ch:32,book:2,id:'populus',nom:'populus',stem:'popul',decl:'2m',gender:'m',gloss:'people',eng:{sg:'people',pl:'peoples'}});
+W({ch:32,book:2,id:'primum',nom:'prīmum',gloss:'for the first time'});
+W({ch:32,book:2,id:'procul',nom:'procul',gloss:'far off'});
+A({ch:32,book:2,id:'publicus',nom:'pūblicus',stem:'pūblic',type:'212',gloss:'public'});
+N({ch:32,book:2,id:'romani',nom:'Rōmānī',stem:'Rōmān',decl:'2m',gender:'m',gloss:'Romans',pluraleTantum:true});
+W({ch:32,book:2,id:'satis',nom:'satis',gloss:'enough'});
+N({ch:32,book:2,id:'senatus',nom:'senātus',stem:'senāt',decl:'4',gender:'m',gloss:'Senate'});
+A({ch:32,book:2,id:'ultimus',nom:'ultimus',stem:'ultim',type:'212',gloss:'final; furthest'});
+W({ch:32,book:2,id:'vale',nom:'valē!',gloss:'goodbye, farewell'});
+
+
+
+const MORPH = {
+  NOUNS, VERBS, ADJS, CASES, ADJ_BANK, PRONOUN_KEYS, PRONOUNS, PRON_CASES, SUB,
+  nounForm, nounDictForm, verbForm, verbDictForm, makeAblAbs, checkAnswer,
+  pppAblative, presPartAblative,
+  adjForm, comparativeNomMF, comparativeNomN, superlative,
+  adverbPositive, adverbComparative, adverbSuperlative, pronForm,
+  presActInf, presPassInf, perfActInf, perfPassInf, futActInf,
+  presActPart, presActPartStem, perfPassPart, futActPart, gerundive, gerund, supine,
+  imperative, perfPassive, tagCore, classifyImport
+};
+
+/* ===== UI ===== */
+/* ================= UI CONTROLLER (v2) ================= */
+const $ = id => document.getElementById(id);
+const ENG_PERSON = {1:{sg:'I',pl:'we'},2:{sg:'you (sg.)',pl:'you (pl.)'},3:{sg:'he/she/it',pl:'they'}};
+const TL={present:'present',imperfect:'imperfect',future:'future',perfect:'perfect',pluperfect:'pluperfect',futureperfect:'future perfect'};
+const ML={indicative:'indicative',subjunctive:'subjunctive'}, VL={active:'active',passive:'passive'};
+const CL={Nom:'nominative',Gen:'genitive',Dat:'dative',Acc:'accusative',Abl:'ablative',Voc:'vocative'};
+const GL={m:'masculine',f:'feminine',n:'neuter'};
+
+/* live word banks (start from MORPH core, tagged; imports get appended) */
+MORPH.tagCore(MORPH.NOUNS); MORPH.tagCore(MORPH.VERBS); MORPH.tagCore(MORPH.ADJ_BANK);
+const BANK = { nouns:[...MORPH.NOUNS], verbs:[...MORPH.VERBS], adjs:[...MORPH.ADJ_BANK] };
+
+/* Suburani data split into noun/verb/adj pools (indeclinables excluded from form drills) */
+const SUB_NOUNS = MORPH.SUB.filter(w=>w.pos==='noun' && w.decl!=='pron');
+const SUB_VERBS = MORPH.SUB.filter(w=>w.pos==='verb');
+const SUB_ADJS  = MORPH.SUB.filter(w=>w.pos==='adj');
+
+/* persistence (graceful: works when hosted, silently skips in restricted preview) */
+const STORE_KEY='formae_imports_v1';
+function loadImports(){ try{ const r=localStorage.getItem(STORE_KEY); if(r) return JSON.parse(r); }catch(e){} return []; }
+function saveImports(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} }
+let IMPORTS = loadImports();
+
+const state = { tab:'verb', src:'bank', chapters:new Set(), q:null, graded:false, n:0, answered:0, correct:0, log:[],
+  vNum:'both', nNum:'both', jNum:'both', pNum:'both', aNum:'both', target:0 };
+
+function pickRand(a){ return a[Math.floor(Math.random()*a.length)]; }
+function checked(grp){ return [...document.querySelectorAll(`[data-grp="${grp}"] input:checked`)].map(i=>i.value); }
+function resolveNum(m){ return m==='both'?(Math.random()<0.5?'sg':'pl'):m; }
+
+/* ---- the active pool for a given part of speech, by source ---- */
+function poolFor(pos){
+  if(state.src==='bank'){
+    return pos==='noun'?BANK.nouns.filter(w=>w.source==='core')
+         : pos==='verb'?BANK.verbs.filter(w=>w.source==='core')
+         : BANK.adjs.filter(w=>w.source==='core');
+  }
+  if(state.src==='custom'){
+    const imp = IMPORTS.filter(it=>it.type===pos).map(it=>it.entry);
+    if(state.chapters.size) return imp.filter(e=>state.chapters.has(String(e.chapter)));
+    return imp;
+  }
+  // suburani book1 or book1+2
+  let pool = pos==='noun'?SUB_NOUNS : pos==='verb'?SUB_VERBS : SUB_ADJS;
+  if(state.src==='book1') pool = pool.filter(w=>w.book===1);
+  if(state.chapters.size) pool = pool.filter(w=>state.chapters.has(String(w.ch)));
+  return pool;
+}
+
+/* ---------- VERB (finite) ---------- */
+function makeVerbQ(){
+  const conjs=checked('vConj'),moods=checked('vMood'),voices=checked('vVoice'),tenses=checked('vTense');
+  if(!conjs.length||!moods.length||!voices.length||!tenses.length) return null;
+  let pool=poolFor("verb").filter(v=> v.irregular ? conjs.includes("irr") : (conjs.includes(v.conj)&&!v.deponent));
+  if(!pool.length) return null;
+  for(let t=0;t<60;t++){
+    const v=pickRand(pool); let voice=pickRand(voices),mood=pickRand(moods),tense=pickRand(tenses);
+    if(v.irregular) voice='active';
+    if(mood==='subjunctive'&&['future','futureperfect'].includes(tense)) continue;
+    const person=pickRand([1,2,3]); const number=resolveNum(state.vNum);
+    let ans, gender='m', perfPass=false;
+    if(voice==='passive'&&['perfect','pluperfect','futureperfect'].includes(tense)){
+      if(mood==='subjunctive'&&tense==='futureperfect') continue;
+      gender=pickRand(['m','f','n']); ans=MORPH.perfPassive(v,mood,tense,person,number,gender); perfPass=true;
+    } else if(voice==='passive'){
+      ans=MORPH.verbForm(v,{mood,tense,voice,person,number});
+    } else {
+      ans=MORPH.verbForm(v,{mood,tense,voice,person,number});
+    }
+    if(!ans) continue;
+    const pe=ENG_PERSON[person][number];
+    const bits=[ML[mood],TL[tense],VL[voice]].join(' · ')+(perfPass?` · ${GL[gender]} subject`:'');
+    return {kind:'verb', ptag:`Conjugate · ${person===1?'1st':person===2?'2nd':'3rd'} person ${number==='pl'?'plural':'singular'}`,
+      prompt:`${v.p1} — ${bits}, “${pe}”`, vocab:[MORPH.verbDictForm(v)], answer:ans, label:`${v.gloss} · ${bits} · ${pe}`};
+  }
+  return null;
+}
+
+/* ---------- NOUN ---------- */
+const DG={'1':['1'],'2':['2m','2r','2n'],'3':['3','3n','3i','3in'],'4':['4','4n'],'5':['5']};
+function makeNounQ(){
+  const decls=checked('nDecl'),cases=checked('nCase'); if(!decls.length||!cases.length) return null;
+  const allow=decls.flatMap(d=>DG[d]);
+  let pool=poolFor('noun').filter(n=>allow.includes(n.decl)&&n.decl!=='pron');
+  if(!pool.length) return null;
+  for(let t=0;t<30;t++){
+    const n=pickRand(pool),c=pickRand(cases),number=resolveNum(state.nNum);
+    const ans=MORPH.nounForm(n,c,number); if(!ans) continue;
+    return {kind:'noun', ptag:`Decline · ${CL[c]} ${number==='pl'?'plural':'singular'}`,
+      prompt:`${n.nom} — ${CL[c]} ${number==='pl'?'plural':'singular'}`, vocab:[MORPH.nounDictForm(n)], answer:ans, label:`${n.gloss} · ${CL[c]} ${number}`};
+  }
+  return null;
+}
+
+/* ---------- ADJECTIVE (decline) ---------- */
+function makeAdjQ(){
+  const types=checked('jType'),cases=checked('jCase'),gens=checked('jGen'); if(!types.length||!cases.length||!gens.length) return null;
+  let pool=poolFor('adj').filter(a=>types.includes(a.type||'212'));
+  if(!pool.length) return null;
+  const a=pickRand(pool),c=pickRand(cases),g=pickRand(gens),number=resolveNum(state.jNum);
+  const ans=MORPH.adjForm(a,g,c,number); if(!ans) return null;
+  const dict=`${a.nom}, ${a.type==='3'?(a.nNom||a.stem+'e'):'-a, -um'} — ${a.gloss}`;
+  return {kind:'adj', ptag:`Decline adjective · ${GL[g]} ${CL[c]} ${number==='pl'?'plural':'singular'}`,
+    prompt:`${a.nom} — ${GL[g]} ${CL[c]} ${number==='pl'?'plural':'singular'}`, vocab:[dict], answer:ans, label:`${a.gloss} · ${GL[g]} ${CL[c]} ${number}`};
+}
+
+/* ---------- COMPARISON ---------- */
+function makeCompareQ(){
+  const what=checked('cWhat'); if(!what.length) return null;
+  let pool=poolFor('adj'); if(!pool.length) return null;
+  const a=pickRand(pool); const w=pickRand(what);
+  let ans,desc;
+  if(w==='adjComp'){ ans=MORPH.comparativeNomMF(a); desc='comparative (m./f. nom. sg.)'; }
+  else if(w==='adjSup'){ ans=MORPH.superlative(a); desc='superlative (m. nom. sg.)'; }
+  else if(w==='advPos'){ ans=MORPH.adverbPositive(a); desc='adverb (positive)'; }
+  else if(w==='advComp'){ ans=MORPH.adverbComparative(a); desc='adverb (comparative)'; }
+  else { ans=MORPH.adverbSuperlative(a); desc='adverb (superlative)'; }
+  if(!ans) return null;
+  const dict=`${a.nom}, ${a.type==='3'?(a.nNom||a.stem+'e'):'-a, -um'} — ${a.gloss}`;
+  return {kind:'compare', ptag:`Form the ${desc}`, prompt:`${a.nom} — ${desc}`, vocab:[dict], answer:ans, label:`${a.gloss} · ${desc}`};
+}
+
+/* ---------- PRONOUN ---------- */
+function makePronQ(){
+  const which=checked('pWhich'),cases=checked('pCase'),gens=checked('pGen'); if(!which.length||!cases.length||!gens.length) return null;
+  const k=pickRand(which),c=pickRand(cases),g=pickRand(gens),number=resolveNum(state.pNum);
+  const ans=MORPH.pronForm(k,g,c,number); if(!ans) return null;
+  const name=MORPH.PRONOUNS[k].name;
+  return {kind:'pron', ptag:`Decline pronoun · ${GL[g]} ${CL[c]} ${number==='pl'?'plural':'singular'}`,
+    prompt:`${name} — ${GL[g]} ${CL[c]} ${number==='pl'?'plural':'singular'}`, vocab:[`${name} — ${MORPH.PRONOUNS[k].gloss}`], answer:ans, label:`${name} · ${GL[g]} ${CL[c]} ${number}`};
+}
+
+/* ---------- NON-FINITE ---------- */
+function makeNonfinQ(){
+  const what=checked('fWhat'),conjs=checked('fConj'); if(!what.length||!conjs.length) return null;
+  let pool=poolFor('verb').filter(v=>!v.irregular&&!v.deponent&&conjs.includes(v.conj));
+  if(!pool.length) return null;
+  for(let t=0;t<40;t++){
+    const v=pickRand(pool); const w=pickRand(what); let ans,desc;
+    switch(w){
+      case 'infPresAct': ans=MORPH.presActInf(v); desc='present active infinitive'; break;
+      case 'infPresPass': ans=MORPH.presPassInf(v); desc='present passive infinitive'; break;
+      case 'infPerfAct': ans=MORPH.perfActInf(v); desc='perfect active infinitive'; break;
+      case 'partPresAct': ans=MORPH.presActPart(v); desc='present active participle (nom. sg.)'; break;
+      case 'partPerfPass': ans=MORPH.perfPassPart(v); desc='perfect passive participle (m. nom. sg.)'; break;
+      case 'partFutAct': ans=MORPH.futActPart(v); desc='future active participle (m. nom. sg.)'; break;
+      case 'gerundive': ans=MORPH.gerundive(v); desc='gerundive (m. nom. sg.)'; break;
+      case 'imperative': { const num=pickRand(['sg','pl']); ans=MORPH.imperative(v,num); desc=`imperative (${num==='pl'?'plural':'singular'})`; break; }
+      case 'gerund': { const c=pickRand(['Gen','Dat','Acc','Abl']); ans=MORPH.gerund(v,c); desc=`gerund (${CL[c]})`; break; }
+      case 'supine': { const c=pickRand(['Acc','Abl']); ans=MORPH.supine(v,c); desc=`supine (${CL[c]})`; break; }
+    }
+    if(!ans) continue;
+    return {kind:'nonfin', ptag:`Form the ${desc}`, prompt:`${v.p1} — ${desc}`, vocab:[MORPH.verbDictForm(v)], answer:ans, label:`${v.gloss} · ${desc}`};
+  }
+  return null;
+}
+
+/* ---------- ABL ABS ---------- */
+function makeAblAbsQ(){
+  const types=checked('aType'); if(!types.length) return null;
+  const q=MORPH.makeAblAbs(pickRand(types), resolveNum(state.aNum));
+  return {kind:'ablabs', ptag:`Compose · ${q.label}`, prompt:q.prompt, vocab:q.vocab, answer:q.answer, label:q.label};
+}
+
+const GEN = {verb:makeVerbQ, noun:makeNounQ, adj:makeAdjQ, compare:makeCompareQ, pron:makePronQ, nonfin:makeNonfinQ, ablabs:makeAblAbsQ};
+
+function newQuestion(){
+  const q=GEN[state.tab] ? GEN[state.tab]() : null;
+  if(!q){ $('prompt').textContent='No words match — adjust the options or word source above ↑'; $('vocab').innerHTML='<span class="vlabel">Vocabulary</span>'; $('answer').value=''; state.q=null; return; }
+  state.q=q; state.graded=false; state.n++;
+  $('qnum').textContent='#'+state.n; $('ptag').textContent=q.ptag; $('prompt').textContent=q.prompt;
+  $('vocab').innerHTML='<span class="vlabel">Vocabulary</span>'+q.vocab.map(v=>`<div class="entry">${v}</div>`).join('');
+  const a=$('answer'); a.value=''; a.className=''; a.focus();
+  $('feedback').className='feedback'; $('feedback').innerHTML=''; $('checkBtn').textContent='Check answer';
+}
+function grade(){
+  if(!state.q||state.graded) return;
+  const input=$('answer').value.trim(), correct=state.q.answer, macrons=$('macStrict').checked, empty=input==='';
+  const ok=!empty&&MORPH.checkAnswer(input,correct,macrons);
+  state.graded=true; state.answered++; if(ok) state.correct++;
+  $('answer').className=ok?'correct':'wrong';
+  const fb=$('feedback'); fb.className='feedback '+(ok?'ok':'no');
+  const ell=state.q.kind==='ablabs'?'…':'';
+  fb.innerHTML=`<div class="verdict">${ok?'✓ Correct':(empty?'Example shown':'✗ Not quite')}</div><div class="ans">Answer: <b>${correct}${ell}</b></div>`+(ok?'':`<div class="note">${state.q.label}</div>`);
+  state.log.unshift({n:state.n,prompt:state.q.prompt,you:empty?'(blank)':input,ans:correct+ell,label:state.q.label,ok});
+  renderStats(); renderLog(); $('checkBtn').textContent='Next →';
+}
+function renderStats(){ $('sAns').textContent=state.answered; $('sCor').textContent=state.correct; $('sPct').textContent=state.answered?Math.round(100*state.correct/state.answered)+'%':'—'; renderAssign(); }
+function renderAssign(){
+  const el=$('assignProgress'); if(!el) return;
+  if(!state.target){ el.textContent=''; el.className='assign-progress'; return; }
+  const done=state.answered>=state.target;
+  el.className='assign-progress'+(done?' done':'');
+  el.textContent = done ? `✓ Assignment complete — ${state.answered}/${state.target} answered (${state.answered?Math.round(100*state.correct/state.answered):0}% correct)`
+                        : `Progress: ${state.answered} / ${state.target}`;
+}
+function renderLog(){ if(!state.log.length) return; $('log').innerHTML=state.log.map(it=>`<div class="item"><div class="q">${it.n}. ${it.prompt}</div><div class="you ${it.ok?'ok':''}">[YOU] ${it.you} ${it.ok?'✓':'✗'}</div><div class="ans2">[ANS] <b>${it.ans}</b></div><div class="tag">❖ ${it.label}</div></div>`).join(''); }
+function insertAtCursor(ch){ const a=$('answer'),s=a.selectionStart,e=a.selectionEnd; a.value=a.value.slice(0,s)+ch+a.value.slice(e); a.selectionStart=a.selectionEnd=s+ch.length; a.focus(); }
+
+/* ---------- chapter chips ---------- */
+function refreshChapters(){
+  let chs=[];
+  if(state.src==='book1') chs=[...new Set(SUB_NOUNS.concat(SUB_VERBS,SUB_ADJS).filter(w=>w.book===1).map(w=>w.ch))];
+  else if(state.src==='book12') chs=[...new Set(SUB_NOUNS.concat(SUB_VERBS,SUB_ADJS).map(w=>w.ch))];
+  else if(state.src==='custom') chs=[...new Set(IMPORTS.map(i=>i.entry.chapter).filter(c=>c&&c!=='null'))];
+  chs.sort((a,b)=>(a-b)||String(a).localeCompare(String(b)));
+  const row=$('chapterRow'); row.innerHTML='';
+  chs.forEach(c=>{ const l=document.createElement('label'); l.className='chk';
+    l.innerHTML=`<input type="checkbox" value="${c}"> ch. ${c}`; row.appendChild(l); });
+  $('chapterGroup').style.display = (chs.length?'':'none');
+  row.querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{
+    state.chapters.clear(); row.querySelectorAll('input:checked').forEach(x=>state.chapters.add(x.value)); newQuestion();
+  }));
+}
+
+/* ---------- import ---------- */
+function doImport(){
+  const text=$('importText').value, chapter=$('importChapter').value.trim()||null;
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let added=0; const report=[];
+  for(const line of lines){
+    const r=MORPH.classifyImport(line);
+    if(!r){ continue; }
+    if(r.error){ report.push(`<div class="err">✗ ${r.error}</div>`); continue; }
+    r.entry.chapter=chapter; r.entry.id=(r.entry.id||line)+'_imp'+(IMPORTS.length+added);
+    IMPORTS.push(r); added++;
+    report.push(`<div class="ok">✓ ${r.type}: ${r.entry.nom||r.entry.p1}</div>`);
+  }
+  saveImports(IMPORTS); refreshChapters();
+  $('importReport').innerHTML=`<div style="margin-bottom:6px"><b>${added}</b> word(s) added.</div>`+report.join('');
+  $('importText').value='';
+}
+function clearImports(){ IMPORTS=[]; saveImports(IMPORTS); refreshChapters(); $('importReport').innerHTML='All imported words cleared.'; if(state.src==='custom') newQuestion(); }
+
+/* ---------- events ---------- */
+$('tabs').addEventListener('click',e=>{ const t=e.target.closest('.tab'); if(!t) return;
+  state.tab=t.dataset.tab; [...document.querySelectorAll('.tab')].forEach(x=>x.setAttribute('aria-selected',x===t));
+  ['verb','noun','adj','compare','pron','nonfin','ablabs'].forEach(k=>$('opt-'+k).classList.toggle('hidden',k!==state.tab));
+  $('answer').placeholder= state.tab==='ablabs'?'Type the ablative absolute…':'Type the Latin form…';
+  newQuestion();
+});
+document.querySelectorAll('.options').forEach(o=>o.addEventListener('change',()=>newQuestion()));
+document.querySelectorAll('.seg').forEach(seg=>seg.addEventListener('click',e=>{
+  if(!e.target.dataset.v) return; const key=seg.dataset.seg;
+  [...seg.children].forEach(b=>b.setAttribute('aria-pressed',b===e.target));
+  if(key==='src'){ state.src=e.target.dataset.v; state.chapters.clear(); refreshChapters(); }
+  else state[key]=e.target.dataset.v;
+  newQuestion();
+}));
+$('macra').addEventListener('click',e=>{ if(e.target.dataset.ch) insertAtCursor(e.target.dataset.ch); });
+$('targetInput').addEventListener('input',e=>{ state.target=Math.max(0,parseInt(e.target.value)||0); renderAssign(); });
+$('checkBtn').addEventListener('click',()=>{ if(state.graded) newQuestion(); else grade(); });
+$('nextBtn').addEventListener('click',()=>newQuestion());
+$('answer').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if(state.graded) newQuestion(); else grade(); }});
+$('importBtn').addEventListener('click',()=>$('importModal').classList.add('show'));
+$('importClose').addEventListener('click',()=>$('importModal').classList.remove('show'));
+$('importDo').addEventListener('click',doImport);
+$('importClear').addEventListener('click',clearImports);
+$('importModal').addEventListener('click',e=>{ if(e.target.id==='importModal') $('importModal').classList.remove('show'); });
+
+refreshChapters(); newQuestion(); renderStats();
+
+</script>
+</body>
+</html>
